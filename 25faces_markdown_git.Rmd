@@ -29,6 +29,8 @@ library(reghelper)
 ```{r loading_data} 
 setwd("pilot1")
 ##### uploading every json file and creating one big file #####
+#unable to upload more than 100 files to git 
+#pls download "pilot1" from slack 
 
 #read all the files with jason ending
 filenames <- list.files(pattern="*.json", recursive = T)
@@ -96,7 +98,9 @@ demo_cols <- c("ethnic", "age", "children", "economic", "edu", "employment", "ge
 df <- inner_join(org_data, mod_data[, c("rt", "subject", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "B1", "B2", "B3", "B4", "B5", "B6")], by = "subject") 
 df <- inner_join(df, demo_data[, c("subject", demo_cols)], by = "subject") 
 df <- inner_join(df, followup_data[, c("subject", "followup_response")], by = "subject") 
-df <- inner_join(df, atten_data[, c("subject", "attention_check")], by = "subject") 
+df <- inner_join(df, atten_data[, c("subject", "attention_check")], by = "subject")
+df <- inner_join(df, start_response_data[, c("subject", "start_response")], by = "subject")
+
 ```
 ```{r}
 
@@ -107,7 +111,7 @@ sapply(df,class)
 preprocessed_data <- apply(df,2,as.character)
 
 #create csv document form json
-x = write.csv(preprocessed_data, "/Users/ramat/Desktop/preprocessed_data_1.csv")
+x = write.csv(preprocessed_data, "/Users/ramat/Desktop/preprocessed_data_final.csv")
 
 ```
 ```{R}
@@ -120,20 +124,25 @@ remove(mod_data,org_data, prolific_data,raw_data,start_response_data,all_data, a
 setwd("/Users/ramat/Desktop/")
 
 #load full csv data (preprocessed data)
-pd <- read.csv("/Users/ramat/Desktop/preprocessed_data_1.csv")
+pd <- read.csv("/Users/ramat/Desktop/preprocessed_data_final.csv")
 
 #Dropping those participants who failed the attention checks
 #TRIAL INDEX 0
-pd$attention_check[pd$letter==" r"] <- 1
-pd$attention_check[pd$letter==" R"] <- 1
+pd$attention_check[pd$attention_check=="r"] <- 1
+pd$attention_check[pd$attention_check=="R"] <- 1
+#Checking for failed attention checks
+pd$attention_check[pd$attention_check!=1] 
+#setting them to 0
+pd$attention_check[pd$attention_check!=1] <- 0
 pd$attention_check[is.na(pd$attention_check)==T] <- 0
+#only put 1 into new subset
 pd1 <- subset(pd, attention_check == 1)
 
 #only considering participants who started the questionnaire 
 #TRIAL INDEX 2
-Pilot1_July19_22$start_response[Pilot1_July19_22$letter==" 0"] <- 1
-Pilot1_July19_22$start_response[is.na(Pilot1_July19_22$start_response)==T] <- 0
-Pilot1_July19_221 <- subset(Pilot1_July19_22, start_response == 1)
+pd1$start_response[pd1$start_response==0] <- 1
+pd1$start_response[is.na(pd1$start_response)==T] <- 0
+pd1 <- subset(pd1, start_response == 1)
 ```
 ```{R}
 ################################Renaming variables#############################
@@ -352,7 +361,7 @@ Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 6] <- "So
 Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 7] <- "Strongly oppose"
 
 #Writing the data into csv file
-write.csv(Pilot1_July19_22, file = "Pilot1_19_July_cleaned.csv")
+write.csv(Pilot1_July19_22, file = "test.csv")
 ```
 ```{R}
 #START OF ANALYSIS
