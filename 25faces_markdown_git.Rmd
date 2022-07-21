@@ -353,3 +353,13 @@ Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 7] <- "St
 #Writing the data into csv file
 write.csv(Pilot1_July19_22, file = "Pilot1_19_July_cleaned.csv")
 ```
+```
+#START OF ANALYSIS
+#Regression and simple slopes
+# Main Effects Analysis
+summary(m1 <- lme4::glmer(fairness_num ~ cond * majority_share + age + gender_num + marital_num + income_num_log + employment_num + PoliticalOrientation + ladder + children + education + (1 | id), Pilot1_July19_22, family = binomial(link = "logit")))
+
+summary(m1_1 <- lme4::glmer(fairness_num ~ cond * majority_share + (1 | id), Pilot1_July19_22, family = binomial(link = "logit")))
+
+reghelper::simple_slopes(m1)
+```
