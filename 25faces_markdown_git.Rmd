@@ -26,7 +26,6 @@ library(ggpubr)
 library(texreg)
 library(reghelper)
 ```
-#getting all data names:
 ```{r loading_data} 
 setwd("pilot1")
 ##### uploading every json file and creating one big file #####
@@ -43,7 +42,7 @@ all_data <- do.call("bind_rows", completedData)
 raw_data <- all_data
 unique(raw_data$trial_type)
 
-#data trandformation as the data from different variables loook different - goal: to combine them in the end
+#data transformation as the data from different variables look different - goal: to combine them in the end
 
 # trial index 0 = attention check
 atten_trial <- 0
@@ -92,12 +91,12 @@ names(followup_data)[names(followup_data) == "response"] <- "followup_response"
 
 ```
 ```{r join_individual_data}
+#join all the data trial from above into one 
 demo_cols <- c("ethnic", "age", "children", "economic", "edu", "employment", "gender", "gender_description", "income", "ladder", "marital", "social")
 df <- inner_join(org_data, mod_data[, c("rt", "subject", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "B1", "B2", "B3", "B4", "B5", "B6")], by = "subject") 
 df <- inner_join(df, demo_data[, c("subject", demo_cols)], by = "subject") 
 df <- inner_join(df, followup_data[, c("subject", "followup_response")], by = "subject") 
 df <- inner_join(df, atten_data[, c("subject", "attention_check")], by = "subject") 
-
 ```
 ```{r}
 
@@ -107,19 +106,16 @@ sapply(df,class)
 #unlist df to work with it
 preprocessed_data <- apply(df,2,as.character)
 
-#create excel document form json
+#create csv document form json
 x = write.csv(preprocessed_data, "/Users/ramat/Desktop/preprocessed_data_1.csv")
 
 ```
-
-####################################################################
-####################################################################
-# Cleaning the excel 
-
+```{R}
+############################Cleaning the excel################################# 
 #Set working directory  
 setwd("/Users/ramat/Desktop/")
 
-#load full excel data (preprocessed data)
+#load full csv data (preprocessed data)
 pd <- read.csv("/Users/ramat/Desktop/preprocessed_data_1.csv")
 
 #Dropping those participants who failed the attention checks
@@ -134,8 +130,10 @@ pd1 <- subset(pd, attention_check == 1)
 Pilot1_July19_22$start_response[Pilot1_July19_22$letter==" 0"] <- 1
 Pilot1_July19_22$start_response[is.na(Pilot1_July19_22$start_response)==T] <- 0
 Pilot1_July19_221 <- subset(Pilot1_July19_22, start_response == 1)
+```
+```{R}
+################################Renaming variables#############################
 
-#Renaming variables# 
 #TRIAL INDEX 3-7
 #1.DV - Fairness
 names(Pilot1_July19_22)[names(Pilot1_July19_22) == "perception1"] <- "fairness"
@@ -241,7 +239,6 @@ Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 4] <- "Neutral"
 Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 5] <- "Slightly oppose"
 Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 6] <- "Somewhat oppose"
 Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 7] <- "Strongly oppose"
-
 
 Pilot1_July19_22$s3_group_dominate[Pilot1_July19_22$s3_group_dominate == 1] <- "Strongly favor"
 Pilot1_July19_22$s3_group_dominate[Pilot1_July19_22$s3_group_dominate == 2] <- "Somewhat favor"
@@ -353,7 +350,7 @@ Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 7] <- "St
 #Writing the data into csv file
 write.csv(Pilot1_July19_22, file = "Pilot1_19_July_cleaned.csv")
 ```
-```
+```{R}
 #START OF ANALYSIS
 #Regression and simple slopes
 # Main Effects Analysis
