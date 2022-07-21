@@ -111,6 +111,10 @@ x = write.csv(preprocessed_data, "/Users/ramat/Desktop/preprocessed_data_1.csv")
 
 ```
 ```{R}
+#cleaning up the environment (not necessary step)
+remove(mod_data,org_data, prolific_data,raw_data,start_response_data,all_data, atten_data,completedData,demo_data, demo_data_ethnic, demo_data_wo_ethnic, files, followup_data, isCompleted)
+```
+```{R}
 ############################Cleaning the excel################################# 
 #Set working directory  
 setwd("/Users/ramat/Desktop/")
