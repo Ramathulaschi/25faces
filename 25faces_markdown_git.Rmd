@@ -43,7 +43,8 @@ completedData <- files[isCompleted == 12 ]
 all_data <- do.call("bind_rows", completedData)
 raw_data <- all_data
 unique(raw_data$trial_type)
-
+```
+```{R}
 #data transformation as the data from different variables look different - goal: to combine them in the end
 
 # trial index 0 = attention check
@@ -143,53 +144,237 @@ pd1 <- subset(pd, attention_check == 1)
 pd1$start_response[pd1$start_response==0] <- 1
 pd1$start_response[is.na(pd1$start_response)==T] <- 0
 pd1 <- subset(pd1, start_response == 1)
+
+
+#during cleaning some rows were more than one time - to remove them first
+#Checking for the same rows
+pd1[47,]==pd1[48,]
+pd2=pd1
+#cleaning out the rows and duplicated data
+pd1<-distinct(pd2[,2:56])
+#duplicated(pd1[,2:56])
+
 ```
 ```{R}
 ################################Renaming variables#############################
 
 #TRIAL INDEX 3-7
 #1.DV - Fairness
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "perception1"] <- "fairness"
+names(pd1)[names(pd1) == "perception1"] <- "fairness"
+#correcting errors in Yes and NO field
+pd1$fairness[pd1$fairness=="c(\"N\", \"N\")"] <- "N"
+pd1$fairness[pd1$fairness=="c(\"Y\", \"Y\")"] <- "Y"
+
 #2.DV - Team work
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "perception2"] <- "team_work"
+names(pd1)[names(pd1) == "perception2"] <- "team_work"
+#correcting errors in Yes and NO field
+pd1$team_work[pd1$team_work=="c(\"N\", \"N\")"] <- "N"
+pd1$team_work[pd1$team_work=="c(\"Y\", \"Y\")"] <- "Y"
+#checking if the fields look correct
+pd1$team_work
+
 #3.DV - Work in teams
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "perception3"] <- "work_in_team"
+names(pd1)[names(pd1) == "perception3"] <- "work_in_team"
+#correcting errors in Yes and NO field
+pd1$work_in_team[pd1$work_in_team=="c(\"N\", \"N\")"] <- "N"
+pd1$work_in_team[pd1$work_in_team=="c(\"Y\", \"Y\")"] <- "Y"
+#checking if the fields look correct
+pd1$work_in_team
+
 #4.DV - personal interest to work in team
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "perception4"] <- "distrust"
+names(pd1)[names(pd1) == "perception4"] <- "distrust"
+#correcting errors in Yes and NO field
+pd1$distrust[pd1$distrust=="c(\"N\", \"N\")"] <- "N"
+pd1$distrust[pd1$distrust=="c(\"Y\", \"Y\")"] <- "Y"
+#checking if the fields look correct
+pd1$distrust
 
 #Trial Index 8 - Moderators
 #5a.SDO - scale - just the RENAMING!
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "A1"] <- "s1_earn_reward"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "A2"] <- "s2_inferior"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "A3"] <- "s3_group_dominate"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "A4"] <- "s4_bottom_deserve"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "A5"] <- "s5_group_equality"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "A6"] <- "s6_group_equal_unjust"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "A7"] <- "s7_act_equalize"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "A8"] <- "s8_succeed_equal"
+names(pd1)[names(pd1) == "A1"] <- "s1_earn_reward"
+#correcting errors in field
+pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"1\", \"1\")"] <- "1"
+pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"2\", \"2\")"] <- "2"
+pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"3\", \"3\")"] <- "3"
+pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"4\", \"4\")"] <- "4"
+pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"5\", \"5\")"] <- "5"
+pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"6\", \"6\")"] <- "6"
+pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"7\", \"7\")"] <- "7"
+#checking if the fields look correct
+pd1$s1_earn_reward
+
+
+names(pd1)[names(pd1) == "A2"] <- "s2_inferior"
+#correcting errors in field
+pd1$s2_inferior[pd1$s2_inferior=="c(\"1\", \"1\")"] <- "1"
+pd1$s2_inferior[pd1$s2_inferior=="c(\"2\", \"2\")"] <- "2"
+pd1$s2_inferior[pd1$s2_inferior=="c(\"3\", \"3\")"] <- "3"
+pd1$s2_inferior[pd1$s2_inferior=="c(\"4\", \"4\")"] <- "4"
+pd1$s2_inferior[pd1$s2_inferior=="c(\"5\", \"5\")"] <- "5"
+pd1$s2_inferior[pd1$s2_inferior=="c(\"6\", \"6\")"] <- "6"
+pd1$s2_inferior[pd1$s2_inferior=="c(\"7\", \"7\")"] <- "7"
+#checking if the fields look correct
+pd1$s1_earn_reward
+
+names(pd1)[names(pd1) == "A3"] <- "s3_group_dominate"
+#correcting errors in field
+pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"1\", \"1\")"] <- "1"
+pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"2\", \"2\")"] <- "2"
+pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"3\", \"3\")"] <- "3"
+pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"4\", \"4\")"] <- "4"
+pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"5\", \"5\")"] <- "5"
+pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"6\", \"6\")"] <- "6"
+pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"7\", \"7\")"] <- "7"
+#checking if the fields look correct
+pd1$s3_group_dominate
+
+
+names(pd1)[names(pd1) == "A4"] <- "s4_bottom_deserve"
+#correcting errors in 1 and 5 field
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"1\", \"1\")"] <- "1"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"2\", \"2\")"] <- "2"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"3\", \"3\")"] <- "3"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"4\", \"4\")"] <- "4"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"5\", \"5\")"] <- "5"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"6\", \"6\")"] <- "6"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"7\", \"7\")"] <- "7"
+#checking if the fields look correct
+pd1$s4_bottom_deserve
+
+names(pd1)[names(pd1) == "A5"] <- "s5_group_equality"
+#correcting errors in 1 and 5 field
+pd1$s5_group_equality[pd1$s5_group_equality=="c(\"1\", \"1\")"] <- "1"
+pd1$s5_group_equality[pd1$s5_group_equality=="c(\"2\", \"2\")"] <- "2"
+pd1$s5_group_equality[pd1$s5_group_equality=="c(\"3\", \"3\")"] <- "3"
+pd1$s5_group_equality[pd1$s5_group_equality=="c(\"4\", \"4\")"] <- "4"
+pd1$s5_group_equality[pd1$s5_group_equality=="c(\"5\", \"5\")"] <- "5"
+pd1$s5_group_equality[pd1$s5_group_equality=="c(\"6\", \"6\")"] <- "6"
+pd1$s5_group_equality[pd1$s5_group_equality=="c(\"7\", \"7\")"] <- "7"
+#checking if the fields look correct
+pd1$s5_group_equality
+
+names(pd1)[names(pd1) == "A6"] <- "s6_group_equal_unjust"
+#correcting errors in 1 and 5 field
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"1\", \"1\")"] <- "1"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"2\", \"2\")"] <- "2"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"3\", \"3\")"] <- "3"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"4\", \"4\")"] <- "4"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"5\", \"5\")"] <- "5"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"6\", \"6\")"] <- "6"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"7\", \"7\")"] <- "7"
+#checking if the fields look correct
+pd1$s6_group_equal_unjust
+
+names(pd1)[names(pd1) == "A7"] <- "s7_act_equalize"
+#correcting errors in 1 and 5 field
+pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"1\", \"1\")"] <- "1"
+pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"2\", \"2\")"] <- "2"
+pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"3\", \"3\")"] <- "3"
+pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"4\", \"4\")"] <- "4"
+pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"5\", \"5\")"] <- "5"
+pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"6\", \"6\")"] <- "6"
+pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"7\", \"7\")"] <- "7"
+#checking if the fields look correct
+pd1$s7_act_equalize
+
+names(pd1)[names(pd1) == "A8"] <- "s8_succeed_equal"
+#correcting errors in 1 and 5 field
+pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"1\", \"1\")"] <- "1"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"2\", \"2\")"] <- "2"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"3\", \"3\")"] <- "3"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"4\", \"4\")"] <- "4"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"5\", \"5\")"] <- "5"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"6\", \"6\")"] <- "6"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"7\", \"7\")"] <- "7"
+#checking if the fields look correct
+pd1$s8_succeed_equal
+
 
 #5b.Belief in Just world scale
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "B1"] <- "b1_just_world"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "B2"] <- "b2_people_deserve"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "B3"] <- "b3_confident_justice"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "B4"] <- "b4_compensate_injustice"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "B5"] <- "b5_injust_exeception"
-names(Pilot1_July19_22)[names(Pilot1_July19_22) == "B6"] <- "b6_fair_decision"
+names(pd1)[names(pd1) == "B1"] <- "b1_just_world"
+pd1$b1_just_world[pd1$b1_just_world=="c(\"1\", \"1\")"] <- "1"
+pd1$b1_just_world[pd1$b1_just_world=="c(\"2\", \"2\")"] <- "2"
+pd1$b1_just_world[pd1$b1_just_world=="c(\"3\", \"3\")"] <- "3"
+pd1$b1_just_world[pd1$b1_just_world=="c(\"4\", \"4\")"] <- "4"
+pd1$b1_just_world[pd1$b1_just_world=="c(\"5\", \"5\")"] <- "5"
+pd1$b1_just_world[pd1$b1_just_world=="c(\"6\", \"6\")"] <- "6"
 
-#Re-coding value labels# 
-#1. Marital status
-Pilot1_July19_22$marital[Pilot1_July19_22$marital == 1] <- "Divorced"
-Pilot1_July19_22$marital[Pilot1_July19_22$marital == 2] <- "Married"
-Pilot1_July19_22$marital[Pilot1_July19_22$marital == 3] <- "Seperated"
-Pilot1_July19_22$marital[Pilot1_July19_22$marital == 4] <- "Widowed"
 
-#2. Education status
-Pilot1_July19_22$education[Pilot1_July19_22$education == 1] <- "Some high school or less"
-Pilot1_July19_22$education[Pilot1_July19_22$education == 2] <- "Two year college degree"
-Pilot1_July19_22$education[Pilot1_July19_22$education == 3] <- "Some college but no degree"
-Pilot1_July19_22$education[Pilot1_July19_22$education == 4] <- "High school or GED"
-Pilot1_July19_22$education[Pilot1_July19_22$education == 5] <- "Four year college degree"
-Pilot1_July19_22$education[Pilot1_July19_22$education == 6] <- "Graduate degree"
+names(pd1)[names(pd1) == "B2"] <- "b2_people_deserve"
+pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"1\", \"1\")"] <- "1"
+pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"2\", \"2\")"] <- "2"
+pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"3\", \"3\")"] <- "3"
+pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"4\", \"4\")"] <- "4"
+pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"5\", \"5\")"] <- "5"
+pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"6\", \"6\")"] <- "6"
+
+
+names(pd1)[names(pd1) == "B3"] <- "b3_confident_justice"
+pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"1\", \"1\")"] <- "1"
+pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"2\", \"2\")"] <- "2"
+pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"3\", \"3\")"] <- "3"
+pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"4\", \"4\")"] <- "4"
+pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"5\", \"5\")"] <- "5"
+pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"6\", \"6\")"] <- "6"
+
+
+names(pd1)[names(pd1) == "B4"] <- "b4_compensate_injustice"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"1\", \"1\")"] <- "1"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"2\", \"2\")"] <- "2"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"3\", \"3\")"] <- "3"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"4\", \"4\")"] <- "4"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"5\", \"5\")"] <- "5"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"6\", \"6\")"] <- "6"
+
+
+names(pd1)[names(pd1) == "B5"] <- "b5_injust_exeception"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"1\", \"1\")"] <- "1"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"2\", \"2\")"] <- "2"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"3\", \"3\")"] <- "3"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"4\", \"4\")"] <- "4"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"5\", \"5\")"] <- "5"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"6\", \"6\")"] <- "6"
+
+
+names(pd1)[names(pd1) == "B6"] <- "b6_fair_decision"
+pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"1\", \"1\")"] <- "1"
+pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"2\", \"2\")"] <- "2"
+pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"3\", \"3\")"] <- "3"
+pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"4\", \"4\")"] <- "4"
+pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"5\", \"5\")"] <- "5"
+pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"6\", \"6\")"] <- "6"
+
+
+#ethnic
+pd1$ethnic[pd1$ethnic=="list(value = \"Asian\")"] <- "Asian"
+pd1$ethnic[pd1$ethnic=="list(value = c(\"Asian\", \"Asian\"))"] <- "Asian"
+pd1$ethnic[pd1$ethnic=="list(value = \"White\")"] <- "White"
+pd1$ethnic[pd1$ethnic=="list(value = c(\"White\", \"White\"))"] <- "White"
+pd1$ethnic[pd1$ethnic=="list(value = \"Black-AfrAmr\")"] <- "Black-AfrAmr"
+pd1$ethnic[pd1$ethnic=="list(value = \"Other\")" ] <- "Other"
+
+#age
+age <- 1:100
+for (i in age){
+pd1$age[pd1$age==c(i,i)]<-i
+}
+
+#marital status 
+pd1$marital[pd1$marital == 1] <- "Divorced"
+pd1$Divorced[pd1$Divorced=="c(\"1\", \"1\")"] <- "Divorced"
+
+
+pd1$marital[pd1$marital == 2] <- "Married"
+pd1$marital[pd1$marital == 3] <- "Seperated"
+pd1$marital[pd1$marital == 4] <- "Widowed"
+
+#2. edu status
+pd1$edu[pd1$edu == 1] <- "Some high school or less"
+pd1$edu[pd1$edu == 2] <- "Two year college degree"
+pd1$edu[pd1$edu == 3] <- "Some college but no degree"
+pd1$edu[pd1$edu == 4] <- "High school or GED"
+pd1$edu[pd1$edu == 5] <- "Four year college degree"
+pd1$edu[pd1$edu == 6] <- "Graduate degree"
 
 #3. Employment
 Pilot1_July19_22$employment[Pilot1_July19_22$employment == 1] <- "Full-time"
@@ -367,7 +552,7 @@ write.csv(Pilot1_July19_22, file = "test.csv")
 #START OF ANALYSIS
 #Regression and simple slopes
 # Main Effects Analysis
-summary(m1 <- lme4::glmer(fairness_num ~ cond * majority_share + age + gender_num + marital_num + income_num_log + employment_num + PoliticalOrientation + ladder + children + education + (1 | id), Pilot1_July19_22, family = binomial(link = "logit")))
+summary(m1 <- lme4::glmer(fairness_num ~ cond * majority_share + age + gender_num + marital_num + income_num_log + employment_num + PoliticalOrientation + ladder + children + edu + (1 | id), Pilot1_July19_22, family = binomial(link = "logit")))
 
 summary(m1_1 <- lme4::glmer(fairness_num ~ cond * majority_share + (1 | id), Pilot1_July19_22, family = binomial(link = "logit")))
 
