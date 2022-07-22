@@ -354,19 +354,59 @@ pd1$ethnic[pd1$ethnic=="list(value = \"Black-AfrAmr\")"] <- "Black-AfrAmr"
 pd1$ethnic[pd1$ethnic=="list(value = \"Other\")" ] <- "Other"
 
 #age
-age <- 1:100
-for (i in age){
-pd1$age[pd1$age==c(i,i)]<-i
-}
+pd1$age[pd1$age=="c(\"19\", \"19\")"] <- "19"
+pd1$age[pd1$age=="c(\"29\", \"29\")"] <- "29"
+pd1$age[pd1$age=="c(\"31\", \"31\")"] <- "31"
+pd1$age[pd1$age=="c(\"30\", \"30\")"] <- "30"
+
+#children
+pd1$children[pd1$children=="c(\"0\", \"0\")"] <- "0"
+pd1$children[pd1$children=="c(\"2\", \"2\")"] <- "2"
+
+#economic
+pd1$economic[pd1$economic=="c(\"1\", \"1\")"] <- "1"
+pd1$economic[pd1$economic=="c(\"2\", \"2\")"] <- "2"
+
+#education
+pd1$edu[pd1$edu=="c(\"4\", \"4\")"] <- "4"
+pd1$edu[pd1$edu=="c(\"6\", \"6\")"] <- "6"
+pd1$edu[pd1$edu=="c(\"5\", \"5\")"] <- "5"
+pd1$edu[pd1$edu=="c(\"2\", \"2\")"] <- "2"
+
+#employment
+pd1$employment[pd1$employment=="c(\"1\", \"1\")"] <- "1"
+pd1$employment[pd1$employment=="c(\"3\", \"3\")"] <- "3"
+
+#gender
+pd1$gender[pd1$gender=="c(\"f\", \"f\")"] <- "f"
+pd1$gender[pd1$gender=="c(\"o\", \"o\")"] <- "o"
+
+#gender description 
+pd1$gender_description[pd1$gender_description=="c(\"Nonbinary\", \"Nonbinary\")"] <- "Nonbinary"
+
+#income
+pd1$income[pd1$income=="c(\"3\", \"3\")"] <- "3"
+pd1$income[pd1$income=="c(\"6\", \"6\")"] <- "6"
+pd1$income[pd1$income=="c(\"11\", \"11\")"] <- "11"
+pd1$income[pd1$income=="c(\"4\", \"4\")"] <- "4"
+pd1$income
+
+#ladder
+pd1$ladder[pd1$ladder=="c(\"4\", \"4\")"] <- "4"
+pd1$ladder[pd1$ladder=="c(\"6\", \"6\")"] <- "6"
+pd1$ladder[pd1$ladder=="c(\"5\", \"5\")"] <- "5"
 
 #marital status 
 pd1$marital[pd1$marital == 1] <- "Divorced"
-pd1$Divorced[pd1$Divorced=="c(\"1\", \"1\")"] <- "Divorced"
-
-
+pd1$marital[pd1$marital=="c(\"1\", \"1\")"] <- "Divorced"
 pd1$marital[pd1$marital == 2] <- "Married"
 pd1$marital[pd1$marital == 3] <- "Seperated"
 pd1$marital[pd1$marital == 4] <- "Widowed"
+pd1$marital[pd1$marital=="c(\"4\", \"4\")"] <- "Widowed"
+
+#social
+pd1$social[pd1$social=="c(\"2\", \"2\")"] <- "2"
+pd1$social[pd1$social=="c(\"1\", \"1\")"] <- "1"
 
 #2. edu status
 pd1$edu[pd1$edu == 1] <- "Some high school or less"
@@ -377,179 +417,180 @@ pd1$edu[pd1$edu == 5] <- "Four year college degree"
 pd1$edu[pd1$edu == 6] <- "Graduate degree"
 
 #3. Employment
-Pilot1_July19_22$employment[Pilot1_July19_22$employment == 1] <- "Full-time"
-Pilot1_July19_22$employment[Pilot1_July19_22$employment == 2] <- " Part-time"
-Pilot1_July19_22$employment[Pilot1_July19_22$employment == 3] <- "Prefer not to answer"
-Pilot1_July19_22$employment[Pilot1_July19_22$employment == 4] <- "Unemployed"
+pd1$employment[pd1$employment == 1] <- "Full-time"
+pd1$employment[pd1$employment == 2] <- " Part-time"
+pd1$employment[pd1$employment == 3] <- "Prefer not to answer"
+pd1$employment[pd1$employment == 4] <- "Unemployed"
 
 #4. Income
-Pilot1_July19_22$income[Pilot1_July19_22$income == 1] <- "$10,000 to $19,999 "
-Pilot1_July19_22$income[Pilot1_July19_22$income == 2] <- "$100,000 to $124,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 3] <- "$125,000 to $149,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 4] <- "$150,000 to $199,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 5] <- "$20,000 to $29,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 6] <- "$200,000 or more"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 7] <- "$30,000 to $39,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 8] <- "$40,000 to $49,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 9] <- "$50,000 to $59,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 10] <- "$60,000 to $69,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 11] <- "$70,000 to $79,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 12] <- "$80,000 to $89,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 13] <- "$90,000 to $99,999"
-Pilot1_July19_22$income[Pilot1_July19_22$income == 14] <- "Less than $10,000"
+pd1$income[pd1$income == 1] <- "$10,000 to $19,999 "
+pd1$income[pd1$income == 2] <- "$100,000 to $124,999"
+pd1$income[pd1$income == 3] <- "$125,000 to $149,999"
+pd1$income[pd1$income == 4] <- "$150,000 to $199,999"
+pd1$income[pd1$income == 5] <- "$20,000 to $29,999"
+pd1$income[pd1$income == 6] <- "$200,000 or more"
+pd1$income[pd1$income == 7] <- "$30,000 to $39,999"
+pd1$income[pd1$income == 8] <- "$40,000 to $49,999"
+pd1$income[pd1$income == 9] <- "$50,000 to $59,999"
+pd1$income[pd1$income == 10] <- "$60,000 to $69,999"
+pd1$income[pd1$income == 11] <- "$70,000 to $79,999"
+pd1$income[pd1$income == 12] <- "$80,000 to $89,999"
+pd1$income[pd1$income == 13] <- "$90,000 to $99,999"
+pd1$income[pd1$income == 14] <- "Less than $10,000"
 
 #5.Political orientation - social issues
-Pilot1_July19_22$economic[Pilot1_July19_22$economic == 1] <- "Conservative"
-Pilot1_July19_22$economic[Pilot1_July19_22$economic == 2] <- "Liberal"
-Pilot1_July19_22$economic[Pilot1_July19_22$economic == 3] <- "Moderate"
-Pilot1_July19_22$economic[Pilot1_July19_22$economic == 4] <- "Slightly conservative"
-Pilot1_July19_22$economic[Pilot1_July19_22$economic == 5] <- "Slightly liberal"
-Pilot1_July19_22$economic[Pilot1_July19_22$economic == 6] <- "Very conservative"
-Pilot1_July19_22$economic[Pilot1_July19_22$economic == 7] <- "Very liberal"
+pd1$economic[pd1$economic == 1] <- "Conservative"
+pd1$economic[pd1$economic == 2] <- "Liberal"
+pd1$economic[pd1$economic == 3] <- "Moderate"
+pd1$economic[pd1$economic == 4] <- "Slightly conservative"
+pd1$economic[pd1$economic == 5] <- "Slightly liberal"
+pd1$economic[pd1$economic == 6] <- "Very conservative"
+pd1$economic[pd1$economic == 7] <- "Very liberal"
 
 #6.Political orientation - economic issues
-Pilot1_July19_22$social[Pilot1_July19_22$social == 1] <- "Conservative"
-Pilot1_July19_22$social[Pilot1_July19_22$social == 2] <- "Liberal"
-Pilot1_July19_22$social[Pilot1_July19_22$social == 3] <- "Moderate"
-Pilot1_July19_22$social[Pilot1_July19_22$social == 4] <- "Slightly conservative"
-Pilot1_July19_22$social[Pilot1_July19_22$social == 5] <- "Slightly liberal"
-Pilot1_July19_22$social[Pilot1_July19_22$social == 6] <- "Very conservative"
-Pilot1_July19_22$social[Pilot1_July19_22$social == 7] <- "Very liberal"
+pd1$social[pd1$social == 1] <- "Conservative"
+pd1$social[pd1$social == 2] <- "Liberal"
+pd1$social[pd1$social == 3] <- "Moderate"
+pd1$social[pd1$social == 4] <- "Slightly conservative"
+pd1$social[pd1$social == 5] <- "Slightly liberal"
+pd1$social[pd1$social == 6] <- "Very conservative"
+pd1$social[pd1$social == 7] <- "Very liberal"
 
-#7.Gender
-Pilot1_July19_22$gender[Pilot1_July19_22$gender == 1] <- "f"
-Pilot1_July19_22$gender[Pilot1_July19_22$gender == 2] <- "m"
-Pilot1_July19_22$gender[Pilot1_July19_22$gender == 3] <- "o"
+#SDO scale
+pd1$s1_earn_reward[pd1$s1_earn_reward == 1] <- "Strongly favor"
+pd1$s1_earn_reward[pd1$s1_earn_reward == 2] <- "Somewhat favor"
+pd1$s1_earn_reward[pd1$s1_earn_reward == 3] <- "Slightly favor"
+pd1$s1_earn_reward[pd1$s1_earn_reward == 4] <- "Neutral"
+pd1$s1_earn_reward[pd1$s1_earn_reward == 5] <- "Slightly oppose"
+pd1$s1_earn_reward[pd1$s1_earn_reward == 6] <- "Somewhat oppose"
+pd1$s1_earn_reward[pd1$s1_earn_reward == 7] <- "Strongly oppose"
 
-#8. SDO scale
-Pilot1_July19_22$s1_earn_reward[Pilot1_July19_22$s1_earn_reward == 1] <- "Strongly favor"
-Pilot1_July19_22$s1_earn_reward[Pilot1_July19_22$s1_earn_reward == 2] <- "Somewhat favor"
-Pilot1_July19_22$s1_earn_reward[Pilot1_July19_22$s1_earn_reward == 3] <- "Slightly favor"
-Pilot1_July19_22$s1_earn_reward[Pilot1_July19_22$s1_earn_reward == 4] <- "Neutral"
-Pilot1_July19_22$s1_earn_reward[Pilot1_July19_22$s1_earn_reward == 5] <- "Slightly oppose"
-Pilot1_July19_22$s1_earn_reward[Pilot1_July19_22$s1_earn_reward == 6] <- "Somewhat oppose"
-Pilot1_July19_22$s1_earn_reward[Pilot1_July19_22$s1_earn_reward == 7] <- "Strongly oppose"
+pd1$s2_inferior[pd1$s2_inferior == 1] <- "Strongly favor"
+pd1$s2_inferior[pd1$s2_inferior == 2] <- "Somewhat favor"
+pd1$s2_inferior[pd1$s2_inferior == 3] <- "Slightly favor"
+pd1$s2_inferior[pd1$s2_inferior == 4] <- "Neutral"
+pd1$s2_inferior[pd1$s2_inferior == 5] <- "Slightly oppose"
+pd1$s2_inferior[pd1$s2_inferior == 6] <- "Somewhat oppose"
+pd1$s2_inferior[pd1$s2_inferior == 7] <- "Strongly oppose"
 
-Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 1] <- "Strongly favor"
-Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 2] <- "Somewhat favor"
-Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 3] <- "Slightly favor"
-Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 4] <- "Neutral"
-Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 5] <- "Slightly oppose"
-Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 6] <- "Somewhat oppose"
-Pilot1_July19_22$s2_inferior[Pilot1_July19_22$s2_inferior == 7] <- "Strongly oppose"
+pd1$s3_group_dominate[pd1$s3_group_dominate == 1] <- "Strongly favor"
+pd1$s3_group_dominate[pd1$s3_group_dominate == 2] <- "Somewhat favor"
+pd1$s3_group_dominate[pd1$s3_group_dominate == 3] <- "Slightly favor"
+pd1$s3_group_dominate[pd1$s3_group_dominate == 4] <- "Neutral"
+pd1$s3_group_dominate[pd1$s3_group_dominate == 5] <- "Slightly oppose"
+pd1$s3_group_dominate[pd1$s3_group_dominate == 6] <- "Somewhat oppose"
+pd1$s3_group_dominate[pd1$s3_group_dominate == 7] <- "Strongly oppose"
 
-Pilot1_July19_22$s3_group_dominate[Pilot1_July19_22$s3_group_dominate == 1] <- "Strongly favor"
-Pilot1_July19_22$s3_group_dominate[Pilot1_July19_22$s3_group_dominate == 2] <- "Somewhat favor"
-Pilot1_July19_22$s3_group_dominate[Pilot1_July19_22$s3_group_dominate == 3] <- "Slightly favor"
-Pilot1_July19_22$s3_group_dominate[Pilot1_July19_22$s3_group_dominate == 4] <- "Neutral"
-Pilot1_July19_22$s3_group_dominate[Pilot1_July19_22$s3_group_dominate == 5] <- "Slightly oppose"
-Pilot1_July19_22$s3_group_dominate[Pilot1_July19_22$s3_group_dominate == 6] <- "Somewhat oppose"
-Pilot1_July19_22$s3_group_dominate[Pilot1_July19_22$s3_group_dominate == 7] <- "Strongly oppose"
-
-Pilot1_July19_22$s4_bottom_deserve[Pilot1_July19_22$s4_bottom_deserve == 1] <- "Strongly favor"
-Pilot1_July19_22$s4_bottom_deserve[Pilot1_July19_22$s4_bottom_deserve == 2] <- "Somewhat favor"
-Pilot1_July19_22$s4_bottom_deserve[Pilot1_July19_22$s4_bottom_deserve == 3] <- "Slightly favor"
-Pilot1_July19_22$s4_bottom_deserve[Pilot1_July19_22$s4_bottom_deserve == 4] <- "Neutral"
-Pilot1_July19_22$s4_bottom_deserve[Pilot1_July19_22$s4_bottom_deserve == 5] <- "Slightly oppose"
-Pilot1_July19_22$s4_bottom_deserve[Pilot1_July19_22$s4_bottom_deserve == 6] <- "Somewhat oppose"
-Pilot1_July19_22$s4_bottom_deserve[Pilot1_July19_22$s4_bottom_deserve == 7] <- "Strongly oppose"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 1] <- "Strongly favor"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 2] <- "Somewhat favor"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 3] <- "Slightly favor"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 4] <- "Neutral"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 5] <- "Slightly oppose"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 6] <- "Somewhat oppose"
+pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 7] <- "Strongly oppose"
 
 
-Pilot1_July19_22$s5_group_equality[Pilot1_July19_22$s5_group_equality == 1] <- "Strongly favor"
-Pilot1_July19_22$s5_group_equality[Pilot1_July19_22$s5_group_equality == 2] <- "Somewhat favor"
-Pilot1_July19_22$s5_group_equality[Pilot1_July19_22$s5_group_equality == 3] <- "Slightly favor"
-Pilot1_July19_22$s5_group_equality[Pilot1_July19_22$s5_group_equality == 4] <- "Neutral"
-Pilot1_July19_22$s5_group_equality[Pilot1_July19_22$s5_group_equality == 5] <- "Slightly oppose"
-Pilot1_July19_22$s5_group_equality[Pilot1_July19_22$s5_group_equality == 6] <- "Somewhat oppose"
-Pilot1_July19_22$s5_group_equality[Pilot1_July19_22$s5_group_equality == 7] <- "Strongly oppose"
+pd1$s5_group_equality[pd1$s5_group_equality == 1] <- "Strongly favor"
+pd1$s5_group_equality[pd1$s5_group_equality == 2] <- "Somewhat favor"
+pd1$s5_group_equality[pd1$s5_group_equality == 3] <- "Slightly favor"
+pd1$s5_group_equality[pd1$s5_group_equality == 4] <- "Neutral"
+pd1$s5_group_equality[pd1$s5_group_equality == 5] <- "Slightly oppose"
+pd1$s5_group_equality[pd1$s5_group_equality == 6] <- "Somewhat oppose"
+pd1$s5_group_equality[pd1$s5_group_equality == 7] <- "Strongly oppose"
 
 
-Pilot1_July19_22$s6_group_equal_unjust[Pilot1_July19_22$s6_group_equal_unjust == 1] <- "Strongly favor"
-Pilot1_July19_22$s6_group_equal_unjust[Pilot1_July19_22$s6_group_equal_unjust == 2] <- "Somewhat favor"
-Pilot1_July19_22$s6_group_equal_unjust[Pilot1_July19_22$s6_group_equal_unjust == 3] <- "Slightly favor"
-Pilot1_July19_22$s6_group_equal_unjust[Pilot1_July19_22$s6_group_equal_unjust == 4] <- "Neutral"
-Pilot1_July19_22$s6_group_equal_unjust[Pilot1_July19_22$s6_group_equal_unjust == 5] <- "Slightly oppose"
-Pilot1_July19_22$s6_group_equal_unjust[Pilot1_July19_22$s6_group_equal_unjust == 6] <- "Somewhat oppose"
-Pilot1_July19_22$s6_group_equal_unjust[Pilot1_July19_22$s6_group_equal_unjust == 7] <- "Strongly oppose"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 1] <- "Strongly favor"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 2] <- "Somewhat favor"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 3] <- "Slightly favor"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 4] <- "Neutral"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 5] <- "Slightly oppose"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 6] <- "Somewhat oppose"
+pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 7] <- "Strongly oppose"
 
 
-Pilot1_July19_22$s7_act_equalize[Pilot1_July19_22$s7_act_equalize == 1] <- "Strongly favor"
-Pilot1_July19_22$s7_act_equalize[Pilot1_July19_22$s7_act_equalize == 2] <- "Somewhat favor"
-Pilot1_July19_22$s7_act_equalize[Pilot1_July19_22$s7_act_equalize == 3] <- "Slightly favor"
-Pilot1_July19_22$s7_act_equalize[Pilot1_July19_22$s7_act_equalize == 4] <- "Neutral"
-Pilot1_July19_22$s7_act_equalize[Pilot1_July19_22$s7_act_equalize == 5] <- "Slightly oppose"
-Pilot1_July19_22$s7_act_equalize[Pilot1_July19_22$s7_act_equalize == 6] <- "Somewhat oppose"
-Pilot1_July19_22$s7_act_equalize[Pilot1_July19_22$s7_act_equalize == 7] <- "Strongly oppose"
+pd1$s7_act_equalize[pd1$s7_act_equalize == 1] <- "Strongly favor"
+pd1$s7_act_equalize[pd1$s7_act_equalize == 2] <- "Somewhat favor"
+pd1$s7_act_equalize[pd1$s7_act_equalize == 3] <- "Slightly favor"
+pd1$s7_act_equalize[pd1$s7_act_equalize == 4] <- "Neutral"
+pd1$s7_act_equalize[pd1$s7_act_equalize == 5] <- "Slightly oppose"
+pd1$s7_act_equalize[pd1$s7_act_equalize == 6] <- "Somewhat oppose"
+pd1$s7_act_equalize[pd1$s7_act_equalize == 7] <- "Strongly oppose"
 
 
-Pilot1_July19_22$s8_succeed_equal[Pilot1_July19_22$s8_succeed_equal == 1] <- "Strongly favor"
-Pilot1_July19_22$s8_succeed_equal[Pilot1_July19_22$s8_succeed_equal == 2] <- "Somewhat favor"
-Pilot1_July19_22$s8_succeed_equal[Pilot1_July19_22$s8_succeed_equal == 3] <- "Slightly favor"
-Pilot1_July19_22$s8_succeed_equal[Pilot1_July19_22$s8_succeed_equal == 4] <- "Neutral"
-Pilot1_July19_22$s8_succeed_equal[Pilot1_July19_22$s8_succeed_equal == 5] <- "Slightly oppose"
-Pilot1_July19_22$s8_succeed_equal[Pilot1_July19_22$s8_succeed_equal == 6] <- "Somewhat oppose"
-Pilot1_July19_22$s8_succeed_equal[Pilot1_July19_22$s8_succeed_equal == 7] <- "Strongly oppose"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal == 1] <- "Strongly favor"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal == 2] <- "Somewhat favor"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal == 3] <- "Slightly favor"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal == 4] <- "Neutral"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal == 5] <- "Slightly oppose"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal == 6] <- "Somewhat oppose"
+pd1$s8_succeed_equal[pd1$s8_succeed_equal == 7] <- "Strongly oppose"
 
 
 #9. Belief in just world
-
-Pilot1_July19_22$b1_just_world[Pilot1_July19_22$b1_just_world == 1] <- "Strongly favor"
-Pilot1_July19_22$b1_just_world[Pilot1_July19_22$b1_just_world == 2] <- "Somewhat favor"
-Pilot1_July19_22$b1_just_world[Pilot1_July19_22$b1_just_world == 3] <- "Slightly favor"
-Pilot1_July19_22$b1_just_world[Pilot1_July19_22$b1_just_world == 4] <- "Neutral"
-Pilot1_July19_22$b1_just_world[Pilot1_July19_22$b1_just_world == 5] <- "Slightly oppose"
-Pilot1_July19_22$b1_just_world[Pilot1_July19_22$b1_just_world == 6] <- "Somewhat oppose"
-Pilot1_July19_22$b1_just_world[Pilot1_July19_22$b1_just_world == 7] <- "Strongly oppose"
-
-
-Pilot1_July19_22$b2_people_deserve[Pilot1_July19_22$b2_people_deserve == 1] <- "Strongly favor"
-Pilot1_July19_22$b2_people_deserve[Pilot1_July19_22$b2_people_deserve == 2] <- "Somewhat favor"
-Pilot1_July19_22$b2_people_deserve[Pilot1_July19_22$b2_people_deserve == 3] <- "Slightly favor"
-Pilot1_July19_22$b2_people_deserve[Pilot1_July19_22$b2_people_deserve == 4] <- "Neutral"
-Pilot1_July19_22$b2_people_deserve[Pilot1_July19_22$b2_people_deserve == 5] <- "Slightly oppose"
-Pilot1_July19_22$b2_people_deserve[Pilot1_July19_22$b2_people_deserve == 6] <- "Somewhat oppose"
-Pilot1_July19_22$b2_people_deserve[Pilot1_July19_22$b2_people_deserve == 7] <- "Strongly oppose"
+pd1$b1_just_world[pd1$b1_just_world == 1] <- "Strongly favor"
+pd1$b1_just_world[pd1$b1_just_world == 2] <- "Somewhat favor"
+pd1$b1_just_world[pd1$b1_just_world == 3] <- "Slightly favor"
+pd1$b1_just_world[pd1$b1_just_world == 4] <- "Neutral"
+pd1$b1_just_world[pd1$b1_just_world == 5] <- "Slightly oppose"
+pd1$b1_just_world[pd1$b1_just_world == 6] <- "Somewhat oppose"
+pd1$b1_just_world[pd1$b1_just_world == 7] <- "Strongly oppose"
 
 
-Pilot1_July19_22$b3_confident_justice[Pilot1_July19_22$b3_confident_justice == 1] <- "Strongly favor"
-Pilot1_July19_22$b3_confident_justice[Pilot1_July19_22$b3_confident_justice == 2] <- "Somewhat favor"
-Pilot1_July19_22$b3_confident_justice[Pilot1_July19_22$b3_confident_justice == 3] <- "Slightly favor"
-Pilot1_July19_22$b3_confident_justice[Pilot1_July19_22$b3_confident_justice == 4] <- "Neutral"
-Pilot1_July19_22$b3_confident_justice[Pilot1_July19_22$b3_confident_justice == 5] <- "Slightly oppose"
-Pilot1_July19_22$b3_confident_justice[Pilot1_July19_22$b3_confident_justice == 6] <- "Somewhat oppose"
-Pilot1_July19_22$b3_confident_justice[Pilot1_July19_22$b3_confident_justice == 7] <- "Strongly oppose"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 1] <- "Strongly favor"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 2] <- "Somewhat favor"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 3] <- "Slightly favor"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 4] <- "Neutral"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 5] <- "Slightly oppose"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 6] <- "Somewhat oppose"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 7] <- "Strongly oppose"
 
 
-Pilot1_July19_22$b4_compensate_injustice[Pilot1_July19_22$b4_compensate_injustice == 1] <- "Strongly favor"
-Pilot1_July19_22$b4_compensate_injustice[Pilot1_July19_22$b4_compensate_injustice == 2] <- "Somewhat favor"
-Pilot1_July19_22$b4_compensate_injustice[Pilot1_July19_22$b4_compensate_injustice == 3] <- "Slightly favor"
-Pilot1_July19_22$b4_compensate_injustice[Pilot1_July19_22$b4_compensate_injustice == 4] <- "Neutral"
-Pilot1_July19_22$b4_compensate_injustice[Pilot1_July19_22$b4_compensate_injustice == 5] <- "Slightly oppose"
-Pilot1_July19_22$b4_compensate_injustice[Pilot1_July19_22$b4_compensate_injustice == 6] <- "Somewhat oppose"
-Pilot1_July19_22$b4_compensate_injustice[Pilot1_July19_22$b4_compensate_injustice == 7] <- "Strongly oppose"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 1] <- "Strongly favor"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 2] <- "Somewhat favor"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 3] <- "Slightly favor"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 4] <- "Neutral"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 5] <- "Slightly oppose"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 6] <- "Somewhat oppose"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 7] <- "Strongly oppose"
 
 
-Pilot1_July19_22$b5_injust_exeception[Pilot1_July19_22$b5_injust_exeception == 1] <- "Strongly favor"
-Pilot1_July19_22$b5_injust_exeception[Pilot1_July19_22$b5_injust_exeception == 2] <- "Somewhat favor"
-Pilot1_July19_22$b5_injust_exeception[Pilot1_July19_22$b5_injust_exeception == 3] <- "Slightly favor"
-Pilot1_July19_22$b5_injust_exeception[Pilot1_July19_22$b5_injust_exeception == 4] <- "Neutral"
-Pilot1_July19_22$b5_injust_exeception[Pilot1_July19_22$b5_injust_exeception == 5] <- "Slightly oppose"
-Pilot1_July19_22$b5_injust_exeception[Pilot1_July19_22$b5_injust_exeception == 6] <- "Somewhat oppose"
-Pilot1_July19_22$b5_injust_exeception[Pilot1_July19_22$b5_injust_exeception == 7] <- "Strongly oppose"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 1] <- "Strongly favor"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 2] <- "Somewhat favor"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 3] <- "Slightly favor"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 4] <- "Neutral"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 5] <- "Slightly oppose"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 6] <- "Somewhat oppose"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 7] <- "Strongly oppose"
 
-Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 1] <- "Strongly favor"
-Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 2] <- "Somewhat favor"
-Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 3] <- "Slightly favor"
-Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 4] <- "Neutral"
-Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 5] <- "Slightly oppose"
-Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 6] <- "Somewhat oppose"
-Pilot1_July19_22$b6_fair_decision[Pilot1_July19_22$b6_fair_decision == 7] <- "Strongly oppose"
+
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 1] <- "Strongly favor"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 2] <- "Somewhat favor"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 3] <- "Slightly favor"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 4] <- "Neutral"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 5] <- "Slightly oppose"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 6] <- "Somewhat oppose"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 7] <- "Strongly oppose"
+
+pd1$b6_fair_decision[pd1$b6_fair_decision == 1] <- "Strongly favor"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 2] <- "Somewhat favor"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 3] <- "Slightly favor"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 4] <- "Neutral"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 5] <- "Slightly oppose"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 6] <- "Somewhat oppose"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 7] <- "Strongly oppose"
+
+#comments from people
+#I think I was supposed to consider the race and gender of these people, but not knowing anything about their jobs or their performance, it would have been prejudice for me to assume pay was unfair either way.
+#It was interesting that none of the employees appeared to be over age 30 or so.
+#For some of the questions, it might be best to split them into separate pages (such as four questions per page).  The questions/answers were spread too far across the page and were bunched together, which made it harder to read.
 
 #Writing the data into csv file
-write.csv(Pilot1_July19_22, file = "test.csv")
+x = write.csv(pd1, "/Users/ramat/Desktop/cleaned.csv")
 ```
 ```{R}
-#START OF ANALYSIS
+################################START OF ANALYSIS##############################
+###############################################################################
+
 #Regression and simple slopes
 # Main Effects Analysis
 summary(m1 <- lme4::glmer(fairness_num ~ cond * majority_share + age + gender_num + marital_num + income_num_log + employment_num + PoliticalOrientation + ladder + children + edu + (1 | id), Pilot1_July19_22, family = binomial(link = "logit")))
