@@ -164,6 +164,9 @@ names(pd1)[names(pd1) == "perception1"] <- "fairness"
 #correcting errors in Yes and NO field
 pd1$fairness[pd1$fairness=="c(\"N\", \"N\")"] <- "N"
 pd1$fairness[pd1$fairness=="c(\"Y\", \"Y\")"] <- "Y"
+#changing into 0 and 1
+pd1$fairness[pd1$fairness == "Y"] <- 0
+pd1$fairness[pd1$fairness == "N"] <- 1
 
 #2.DV - Team work
 names(pd1)[names(pd1) == "perception2"] <- "team_work"
@@ -172,6 +175,9 @@ pd1$team_work[pd1$team_work=="c(\"N\", \"N\")"] <- "N"
 pd1$team_work[pd1$team_work=="c(\"Y\", \"Y\")"] <- "Y"
 #checking if the fields look correct
 pd1$team_work
+#changing into 0 and 1
+pd1$teamwork[pd1$team_work == "Y"] <- 0
+pd1$teamwork[pd1$team_work == "N"] <- 1
 
 #3.DV - Work in teams
 names(pd1)[names(pd1) == "perception3"] <- "work_in_team"
@@ -180,6 +186,9 @@ pd1$work_in_team[pd1$work_in_team=="c(\"N\", \"N\")"] <- "N"
 pd1$work_in_team[pd1$work_in_team=="c(\"Y\", \"Y\")"] <- "Y"
 #checking if the fields look correct
 pd1$work_in_team
+#changing into 0 and 1
+pd1$workinteam[pd1$work_in_team == "Y"] <- 0
+pd1$workinteam[pd1$work_in_team == "N"] <- 1
 
 #4.DV - personal interest to work in team
 names(pd1)[names(pd1) == "perception4"] <- "distrust"
@@ -188,6 +197,10 @@ pd1$distrust[pd1$distrust=="c(\"N\", \"N\")"] <- "N"
 pd1$distrust[pd1$distrust=="c(\"Y\", \"Y\")"] <- "Y"
 #checking if the fields look correct
 pd1$distrust
+#changing into 0 and 1
+pd1$distrust[pd1$distrust == "Y"] <- 0
+pd1$distrust[pd1$distrust == "N"] <- 1
+
 
 #Trial Index 8 - Moderators
 #5a.SDO - scale - just the RENAMING!
@@ -287,8 +300,6 @@ pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"5\", \"5\")"] <- "5"
 pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"6\", \"6\")"] <- "6"
 pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"7\", \"7\")"] <- "7"
 #checking if the fields look correct
-pd1$s8_succeed_equal
-
 
 #5b.Belief in Just world scale
 names(pd1)[names(pd1) == "B1"] <- "b1_just_world"
@@ -527,57 +538,56 @@ pd1$s8_succeed_equal[pd1$s8_succeed_equal == 7] <- "Strongly oppose"
 
 
 #9. Belief in just world
-pd1$b1_just_world[pd1$b1_just_world == 1] <- "Strongly favor"
-pd1$b1_just_world[pd1$b1_just_world == 2] <- "Somewhat favor"
-pd1$b1_just_world[pd1$b1_just_world == 3] <- "Slightly favor"
-pd1$b1_just_world[pd1$b1_just_world == 4] <- "Neutral"
-pd1$b1_just_world[pd1$b1_just_world == 5] <- "Slightly oppose"
-pd1$b1_just_world[pd1$b1_just_world == 6] <- "Somewhat oppose"
-pd1$b1_just_world[pd1$b1_just_world == 7] <- "Strongly oppose"
+pd1$b1_just_world[pd1$b1_just_world == 1] <- "Strongly disagree"
+pd1$b1_just_world[pd1$b1_just_world == 2] <- "Disagree"
+pd1$b1_just_world[pd1$b1_just_world == 3] <- "Slightly disagree"
+pd1$b1_just_world[pd1$b1_just_world == 4] <- "Slightly Agree"
+pd1$b1_just_world[pd1$b1_just_world == 5] <- "Agree"
+pd1$b1_just_world[pd1$b1_just_world == 6] <- "Strongly agree"
 
 
-pd1$b2_people_deserve[pd1$b2_people_deserve == 1] <- "Strongly favor"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 2] <- "Somewhat favor"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 3] <- "Slightly favor"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 4] <- "Neutral"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 5] <- "Slightly oppose"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 6] <- "Somewhat oppose"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 7] <- "Strongly oppose"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 1] <- "Strongly disagree"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 2] <- "Disagree"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 3] <- "Slightly disagree"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 4] <- "Slightly Agree"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 5] <- "Agree"
+pd1$b2_people_deserve[pd1$b2_people_deserve == 6] <- "Strongly agree"
 
 
-pd1$b3_confident_justice[pd1$b3_confident_justice == 1] <- "Strongly favor"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 2] <- "Somewhat favor"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 3] <- "Slightly favor"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 4] <- "Neutral"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 5] <- "Slightly oppose"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 6] <- "Somewhat oppose"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 7] <- "Strongly oppose"
+
+pd1$b3_confident_justice[pd1$b3_confident_justice == 1] <- "Strongly disagree"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 2] <- "Disagree"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 3] <- "Slightly disagree"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 4] <- "Slightly Agree"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 5] <- "Agree"
+pd1$b3_confident_justice[pd1$b3_confident_justice == 6] <- "Strongly agree"
 
 
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 1] <- "Strongly favor"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 2] <- "Somewhat favor"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 3] <- "Slightly favor"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 4] <- "Neutral"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 5] <- "Slightly oppose"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 6] <- "Somewhat oppose"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 7] <- "Strongly oppose"
+
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 1] <- "Strongly disagree"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 2] <- "Disagree"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 3] <- "Slightly disagree"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 4] <- "Slightly Agree"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 5] <- "Agree"
+pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 6] <- "Strongly agree"
 
 
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 1] <- "Strongly favor"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 2] <- "Somewhat favor"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 3] <- "Slightly favor"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 4] <- "Neutral"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 5] <- "Slightly oppose"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 6] <- "Somewhat oppose"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 7] <- "Strongly oppose"
 
-pd1$b6_fair_decision[pd1$b6_fair_decision == 1] <- "Strongly favor"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 2] <- "Somewhat favor"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 3] <- "Slightly favor"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 4] <- "Neutral"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 5] <- "Slightly oppose"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 6] <- "Somewhat oppose"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 7] <- "Strongly oppose"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 1] <- "Strongly disagree"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 2] <- "Disagree"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 3] <- "Slightly disagree"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 4] <- "Slightly Agree"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 5] <- "Agree"
+pd1$b5_injust_exeception[pd1$b5_injust_exeception == 6] <- "Strongly agree"
+
+
+pd1$b6_fair_decision[pd1$b6_fair_decision == 1] <- "Strongly disagree"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 2] <- "Disagree"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 3] <- "Slightly disagree"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 4] <- "Slightly Agree"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 5] <- "Agree"
+pd1$b6_fair_decision[pd1$b6_fair_decision == 6] <- "Strongly agree"
+
 
 #comments from people
 #I think I was supposed to consider the race and gender of these people, but not knowing anything about their jobs or their performance, it would have been prejudice for me to assume pay was unfair either way.
@@ -588,14 +598,332 @@ pd1$b6_fair_decision[pd1$b6_fair_decision == 7] <- "Strongly oppose"
 x = write.csv(pd1, "/Users/ramat/Desktop/cleaned.csv")
 ```
 ```{R}
-################################START OF ANALYSIS##############################
-###############################################################################
+setwd("/Users/ramat/Desktop/")
 
-#Regression and simple slopes
+#load full csv data (preprocessed data)
+cd <- read.csv("/Users/ramat/Desktop/cleaned.csv")
+#recode to do analysis
+
+cd$fairness[cd$fairness == "Y"] <- 0
+cd$fairness[cd$fairness == "N"] <- 1
+
+cd$team_work[cd$team_work == "Y"] <- 0
+cd$team_work[cd$team_work == "N"] <- 1
+
+cd$work_in_team[cd$work_in_team == "Y"] <- 0
+cd$work_in_team[cd$work_in_team == "N"] <- 1
+
+cd$distrust[cd$work_in_team == "Y"] <- 0
+cd$distrust[cd$work_in_team == "N"] <- 1
+
+cd$social[cd$social == "Very liberal"] <- 1
+cd$social[cd$social == "Liberal"] <- 2
+cd$social[cd$social == "Slightly liberal"] <- 3
+cd$social[cd$social == "Moderate"] <- 4
+cd$social[cd$social == "Slightly conservative"] <- 5
+cd$social[cd$social == "Conservative"] <- 6
+cd$social[cd$social == "Very conservative"] <- 7
+
+cd$economic[cd$economic == "Very liberal"] <- 1
+cd$economic[cd$economic == "Liberal"] <- 2
+cd$economic[cd$economic == "Slightly liberal"] <- 3
+cd$economic[cd$economic == "Moderate"] <- 4
+cd$economic[cd$economic == "Slightly conservative"] <- 5
+cd$economic[cd$economic == "Conservative"] <- 6
+cd$economic[cd$economic == "Very conservative"] <- 7
+
+class(cd$social)
+class(cd$economic)
+cd$PoliticalOrientation <- ((as.numeric(cd$social))+(as.numeric(cd$economic)))/2
+  
+cd$s1_earn_reward[cd$s1_earn_reward == "Strongly oppose"] <- 1
+cd$s1_earn_reward[cd$s1_earn_reward == "Somewhat oppose"] <- 2
+cd$s1_earn_reward[cd$s1_earn_reward == "Slightly oppose"] <- 3
+cd$s1_earn_reward[cd$s1_earn_reward == "Neutral"] <- 4
+cd$s1_earn_reward[cd$s1_earn_reward == "Slightly favor"] <- 5
+cd$s1_earn_reward[cd$s1_earn_reward == "Somewhat favor"] <- 6
+cd$s1_earn_reward[cd$s1_earn_reward == "Strongly favor"] <- 7
+
+cd$s2_inferior[cd$s2_inferior == "Strongly oppose"] <- 1
+cd$s2_inferior[cd$s2_inferior == "Somewhat oppose"] <- 2
+cd$s2_inferior[cd$s2_inferior == "Slightly oppose"] <- 3
+cd$s2_inferior[cd$s2_inferior == "Neutral"] <- 4
+cd$s2_inferior[cd$s2_inferior == "Slightly favor"] <- 5
+cd$s2_inferior[cd$s2_inferior == "Somewhat favor"] <- 6
+cd$s2_inferior[cd$s2_inferior == "Strongly favor"] <- 7
+
+cd$s3_group_dominate[cd$s3_group_dominate == "Strongly oppose"] <- 7
+cd$s3_group_dominate[cd$s3_group_dominate == "Somewhat oppose"] <- 6
+cd$s3_group_dominate[cd$s3_group_dominate == "Slightly oppose"] <- 5
+cd$s3_group_dominate[cd$s3_group_dominate == "Neutral"] <- 4
+cd$s3_group_dominate[cd$s3_group_dominate == "Slightly favor"] <- 3
+cd$s3_group_dominate[cd$s3_group_dominate == "Somewhat favor"] <- 2
+cd$s3_group_dominate[cd$s3_group_dominate == "Strongly favor"] <- 1
+
+cd$s4_bottom_deserve[cd$s4_bottom_deserve == "Strongly oppose"] <- 7
+cd$s4_bottom_deserve[cd$s4_bottom_deserve == "Somewhat oppose"] <- 6
+cd$s4_bottom_deserve[cd$s4_bottom_deserve == "Slightly oppose"] <- 5
+cd$s4_bottom_deserve[cd$s4_bottom_deserve == "Neutral"] <- 4
+cd$s4_bottom_deserve[cd$s4_bottom_deserve == "Slightly favor"] <- 3
+cd$s4_bottom_deserve[cd$s4_bottom_deserve == "Somewhat favor"] <- 2
+cd$s4_bottom_deserve[cd$s4_bottom_deserve == "Strongly favor"] <- 1
+
+cd$s5_group_equality[cd$s5_group_equality == "Strongly oppose"] <- 1
+cd$s5_group_equality[cd$s5_group_equality == "Somewhat oppose"] <- 2
+cd$s5_group_equality[cd$s5_group_equality == "Slightly oppose"] <- 3
+cd$s5_group_equality[cd$s5_group_equality == "Neutral"] <- 4
+cd$s5_group_equality[cd$s5_group_equality == "Slightly favor"] <- 5
+cd$s5_group_equality[cd$s5_group_equality == "Somewhat favor"] <- 6
+cd$s5_group_equality[cd$s5_group_equality == "Strongly favor"] <- 7
+
+cd$s6_group_equal_unjust[cd$s6_group_equal_unjust == "Strongly oppose"] <- 1
+cd$s6_group_equal_unjust[cd$s6_group_equal_unjust == "Somewhat oppose"] <- 2
+cd$s6_group_equal_unjust[cd$s6_group_equal_unjust == "Slightly oppose"] <- 3
+cd$s6_group_equal_unjust[cd$s6_group_equal_unjust == "Neutral"] <- 4
+cd$s6_group_equal_unjust[cd$s6_group_equal_unjust == "Slightly favor"] <- 5
+cd$s6_group_equal_unjust[cd$s6_group_equal_unjust == "Somewhat favor"] <- 6
+cd$s6_group_equal_unjust[cd$s6_group_equal_unjust == "Strongly favor"] <- 7
+
+cd$s7_act_equalize[cd$s7_act_equalize == "Strongly oppose"] <- 7
+cd$s7_act_equalize[cd$s7_act_equalize == "Somewhat oppose"] <- 6
+cd$s7_act_equalize[cd$s7_act_equalize == "Slightly oppose"] <- 5
+cd$s7_act_equalize[cd$s7_act_equalize == "Neutral"] <- 4
+cd$s7_act_equalize[cd$s7_act_equalize == "Slightly favor"] <- 3
+cd$s7_act_equalize[cd$s7_act_equalize == "Somewhat favor"] <- 2
+cd$s7_act_equalize[cd$s7_act_equalize == "Strongly favor"] <- 1
+
+cd$s8_succeed_equal[cd$s8_succeed_equal == "Strongly oppose"] <- 7
+cd$s8_succeed_equal[cd$s8_succeed_equal == "Somewhat oppose"] <- 6
+cd$s8_succeed_equal[cd$s8_succeed_equal == "Slightly oppose"] <- 5
+cd$s8_succeed_equal[cd$s8_succeed_equal == "Neutral"] <- 4
+cd$s8_succeed_equal[cd$s8_succeed_equal == "Slightly favor"] <- 3
+cd$s8_succeed_equal[cd$s8_succeed_equal == "Somewhat favor"] <- 2
+cd$s8_succeed_equal[cd$s8_succeed_equal == "Strongly favor"] <- 1
+
+cd$SDO <- (((as.numeric(cd$s1_earn_reward))+(as.numeric(cd$s2_inferior))+(as.numeric(cd$s3_group_dominate))+(as.numeric(cd$s4_bottom_deserve))+(as.numeric(cd$s5_group_equality))+(as.numeric(cd$s6_group_equal_unjust))+(as.numeric(cd$s7_act_equalize))+(as.numeric(cd$s8_succeed_equal))))/8
+
+#recode further variables - belief in just world
+cd$b1_just_world[cd$b1_just_world == "Strongly disagree"] <- 1
+cd$b1_just_world[cd$b1_just_world == "Disagree"] <- 2
+cd$b1_just_world[cd$b1_just_world == "Slightly disagree"] <- 3
+cd$b1_just_world[cd$b1_just_world == "Slightly Agree"] <- 4
+cd$b1_just_world[cd$b1_just_world == "Agree"] <- 5
+cd$b1_just_world[cd$b1_just_world == "Strongly agree"] <- 6
+
+cd$b2_people_deserve[cd$b2_people_deserve == "Strongly disagree"] <- 1
+cd$b2_people_deserve[cd$b2_people_deserve == "Disagree"] <- 2
+cd$b2_people_deserve[cd$b2_people_deserve == "Slightly disagree"] <- 3
+cd$b2_people_deserve[cd$b2_people_deserve == "Slightly Agree"] <- 4
+cd$b2_people_deserve[cd$b2_people_deserve == "Agree"] <- 5
+cd$b2_people_deserve[cd$b2_people_deserve == "Strongly agree"] <- 6
+
+cd$b3_confident_justice[cd$b3_confident_justice == "Strongly disagree"] <- 1
+cd$b3_confident_justice[cd$b3_confident_justice == "Disagree"] <- 2
+cd$b3_confident_justice[cd$b3_confident_justice == "Slightly disagree"] <- 3
+cd$b3_confident_justice[cd$b3_confident_justice == "Slightly Agree"] <- 4
+cd$b3_confident_justice[cd$b3_confident_justice == "Agree"] <- 5
+cd$b3_confident_justice[cd$b3_confident_justice == "Strongly agree"] <- 6
+
+cd$b4_compensate_injustice[cd$b4_compensate_injustice == "Strongly disagree"] <- 1
+cd$b4_compensate_injustice[cd$b4_compensate_injustice == "Disagree"] <- 2
+cd$b4_compensate_injustice[cd$b4_compensate_injustice == "Slightly disagree"] <- 3
+cd$b4_compensate_injustice[cd$b4_compensate_injustice == "Slightly Agree"] <- 4
+cd$b4_compensate_injustice[cd$b4_compensate_injustice == "Agree"] <- 5
+cd$b4_compensate_injustice[cd$b4_compensate_injustice == "Strongly agree"] <- 6
+
+cd$b5_injust_exeception[cd$b5_injust_exeception == "Strongly disagree"] <- 1
+cd$b5_injust_exeception[cd$b5_injust_exeception == "Disagree"] <- 2
+cd$b5_injust_exeception[cd$b5_injust_exeception == "Slightly disagree"] <- 3
+cd$b5_injust_exeception[cd$b5_injust_exeception == "Slightly Agree"] <- 4
+cd$b5_injust_exeception[cd$b5_injust_exeception == "Agree"] <- 5
+cd$b5_injust_exeception[cd$b5_injust_exeception == "Strongly agree"] <- 6
+
+cd$b6_fair_decision[cd$b6_fair_decision == "Strongly disagree"] <- 1
+cd$b6_fair_decision[cd$b6_fair_decision == "Disagree"] <- 2
+cd$b6_fair_decision[cd$b6_fair_decision == "Slightly disagree"] <- 3
+cd$b6_fair_decision[cd$b6_fair_decision == "Slightly Agree"] <- 4
+cd$b6_fair_decision[cd$b6_fair_decision == "Agree"] <- 5
+cd$b6_fair_decision[cd$b6_fair_decision == "Strongly agree"] <- 6
+
+cd$BJW <- ((as.numeric(cd$b1_just_world)) + (as.numeric(cd$b2_people_deserve))+ (as.numeric(cd$b3_confident_justice)) + (as.numeric(cd$b4_compensate_injustice))  + (as.numeric(cd$b5_injust_exeception)) + (as.numeric(cd$b6_fair_decision)))/6
+
+#gender
+cd$gender[cd$gender == "m"] <- 0
+cd$gender[cd$gender == "f"] <- 1
+cd$gender[cd$gender == "0"] <- 1
+
+#ethic
+cd$ethnic[cd$ethnic == "White"] <- 0
+cd$ethnic[cd$ethnic == "Asian"] <- 1
+cd$ethnic[cd$ethnic == "Other"] <- 1
+cd$ethnic[cd$ethnic=="Black-AfrAmr"] <- 1
+cd$ethnic[cd$ethnic =="list(value = c(\"White\", \"Black-AfrAmr\"))"] <- 1
+cd$ethnic[cd$ethnic =="list(value = c(\"White\", \"Black-AfrAmr\", \"AI-AN\"))"] <- 1
+cd$ethnic[cd$ethnic=="list(value = c(\"White\", \"AI-AN\"))"] <- 1
+cd$ethnic[cd$ethnic=="list(value = c(\"White\", \"NH-PI\", \"AI-AN\"))"] <- 1
+cd$ethnic[cd$ethnic=="list(value = c(\"Asian\", \"Black-AfrAmr\"))"] <- 1
+cd$ethnic[cd$ethnic=="list(value = c(\"White\", \"Asian\"))" ] <- 1
+
+#income
+cd$income[cd$income == "Less than $10,000"] <- 10000
+cd$income[cd$income == "$10,000 to $19,999 "] <- 15000
+cd$income[cd$income == "$20,000 to $29,999"] <- 25000
+cd$income[cd$income == "$30,000 to $39,999"] <- 35000
+cd$income[cd$income == "$40,000 to $49,999"] <- 45000
+cd$income[cd$income == "$50,000 to $59,999"] <- 55000
+cd$income[cd$income == "$60,000 to $69,999"] <- 65000
+cd$income[cd$income == "$70,000 to $79,999"] <- 75000
+cd$income[cd$income == "$80,000 to $89,999"] <- 85000
+cd$income[cd$income == "$90,000 to $99,999"] <- 95000
+cd$income[cd$income == "$100,000 to $124,999"] <- 112500
+cd$income[cd$income == "$125,000 to $149,999"] <- 137500
+cd$income[cd$income == "$150,000 to $199,999"] <- 175000
+cd$income[cd$income == "$200,000 or more"] <- 225000
+
+cd$income_log <- log(as.numeric(cd$income))
+
+#education
+cd$edu[cd$edu == "Some high school or less"] <- 1
+cd$edu[cd$edu == "Two year college degree"] <- 2
+cd$edu[cd$edu == "Some college but no degree"] <- 3
+cd$edu[cd$edu == "High school or GED"] <- 4
+cd$edu[cd$edu == "Four year college degree"] <- 5
+cd$edu[cd$edu == "Graduate degree"] <- 6 
+
+#Marital status
+cd$marital[cd$marital ==  "Divorced"] <- 1
+cd$marital[cd$marital == "Married"] <- 2
+cd$marital[cd$marital == "Seperated"] <- 3
+cd$marital[cd$marital == "Widowed"] <- 4
+
+#changing up the variables for incomeRatio and trail conditions
+#1. non white share/whiteShare: of white(or non-white) / total employee.
+cd$nonwhite_share <- ((as.numeric(cd$nNonWhiteTrial))/25)*100
+cd$white_share <- ((as.numeric(cd$nWhiteTrial))/25)*100
+
+variations <- read.csv("C:/Users/ramat/Desktop/variations.csv", sep = ";")
+
+#creating variations for non whites
+cd$nw_variations[(cd$incomeRatio == 1) & (cd$trial_condition == 1)] <- 5
+cd$nw_variations[cd$incomeRatio == "2" & cd$trial_condition =="1"] <- 6
+cd$nw_variations[cd$incomeRatio == "3" & cd$trial_condition =="1"] <- 7
+cd$nw_variations[cd$incomeRatio == "4" & cd$trial_condition =="1"] <- 8
+cd$nw_variations[cd$incomeRatio == "5" & cd$trial_condition =="1"] <- 9
+cd$nw_variations[cd$incomeRatio == "6" & cd$trial_condition =="1"] <- 10
+cd$nw_variations[cd$incomeRatio == "7" & cd$trial_condition =="1"] <- 11
+
+cd$nw_variations[cd$incomeRatio == "1" & cd$trial_condition =="2"] <- 10
+cd$nw_variations[cd$incomeRatio == "2" & cd$trial_condition =="2"] <- 12
+cd$nw_variations[cd$incomeRatio == "3" & cd$trial_condition =="2"] <- 14
+cd$nw_variations[cd$incomeRatio == "4" & cd$trial_condition =="2"] <- 16
+cd$nw_variations[cd$incomeRatio == "5" & cd$trial_condition =="2"] <- 18
+cd$nw_variations[cd$incomeRatio == "6" & cd$trial_condition =="2"] <- 20
+cd$nw_variations[cd$incomeRatio == "7" & cd$trial_condition =="2"] <- 22
+
+cd$nw_variations[cd$incomeRatio == "1" & cd$trial_condition =="3"] <- 15
+cd$nw_variations[cd$incomeRatio == "2" & cd$trial_condition =="3"] <- 18
+cd$nw_variations[cd$incomeRatio == "3" & cd$trial_condition =="3"] <- 21
+cd$nw_variations[cd$incomeRatio == "4" & cd$trial_condition =="3"] <- 24
+cd$nw_variations[cd$incomeRatio == "5" & cd$trial_condition =="3"] <- 27
+cd$nw_variations[cd$incomeRatio == "6" & cd$trial_condition =="3"] <- 30
+cd$nw_variations[cd$incomeRatio == "7" & cd$trial_condition =="3"] <- 33
+
+cd$nw_variations[cd$incomeRatio == "1" & cd$trial_condition =="4"] <- 20
+cd$nw_variations[cd$incomeRatio == "2" & cd$trial_condition =="4"] <- 24
+cd$nw_variations[cd$incomeRatio == "3" & cd$trial_condition =="4"] <- 28
+cd$nw_variations[cd$incomeRatio == "4" & cd$trial_condition =="4"] <- 32
+cd$nw_variations[cd$incomeRatio == "5" & cd$trial_condition =="4"] <- 36
+cd$nw_variations[cd$incomeRatio == "6" & cd$trial_condition =="4"] <- 40
+cd$nw_variations[cd$incomeRatio == "7" & cd$trial_condition =="4"] <- 44
+
+
+cd$nw_variations[cd$incomeRatio == "1" & cd$trial_condition =="5"] <- 25
+cd$nw_variations[cd$incomeRatio == "2" & cd$trial_condition =="5"] <- 30
+cd$nw_variations[cd$incomeRatio == "3" & cd$trial_condition =="5"] <- 35
+cd$nw_variations[cd$incomeRatio == "4" & cd$trial_condition =="5"] <- 40
+cd$nw_variations[cd$incomeRatio == "5" & cd$trial_condition =="5"] <- 45
+cd$nw_variations[cd$incomeRatio == "6" & cd$trial_condition =="5"] <- 50
+cd$nw_variations[cd$incomeRatio == "7" & cd$trial_condition =="5"] <- 55
+
+#Example for the code: the total income share of white (or non-white) employees / whiteShare (or non-white). E.g. trial_condition = 5, we have 10 white and 15 non-white employee -> nonwhite_share = 40%. and in income_ratio = 4, nwhite employees hold 40% of income share (600k/ 1.5m). Then, we will have 40%/40% = 1.
+#creating variations for white 
+cd$w_variations<- 100-cd$nw_variations
+  
+#Creating the income Shares in general for NW 
+cd$incomeShare_NW<- (cd$nw_variations)/cd$nonwhite_share
+round(cd$incomeShare_NW, digits=2)
+#Creating the income shares in general for W
+cd$incomeShare_W<- (cd$w_variations)/cd$white_share
+round(cd$incomeShare_W,digits=2)
+
+#For all variations(income) = 4 this number should be 1. for variations (income) < 4 should be larger than 1, and for trial_condition > 4 should be less than 1.
+```
+```{R}
+#numeric team_work
+cd$team_work<-as.numeric(cd$team_work)
+cd$work_in_team<-as.numeric(cd$work_in_team)
+#just participants
+X = cd[!duplicated(cd[ , c("subject")]),] #we have 97 final participants
+
+````
+```{R}
+
+#create factors 
+cd$incomeShare_NW = as.factor(cd$incomeShare_NW)
+cd$incomeShare_W = as.factor(cd$incomeShare_W)
+
+cd$incomeShare_NW = factor(cd$incomeShare_NW,levels=rev(levels(cd$incomeShare_NW)))
+
+cd$incomeShare_W = factor(cd$incomeShare_W, levels=rev(levels(cd$incomeShare_W)))
+
+cd$edu = as.numeric(cd$edu)
+
+```
+```{R}
+## summary:cond: white-more; nwmore; equal but for each variation (5)
+
 # Main Effects Analysis
-summary(m1 <- lme4::glmer(fairness_num ~ cond * majority_share + age + gender_num + marital_num + income_num_log + employment_num + PoliticalOrientation + ladder + children + edu + (1 | id), Pilot1_July19_22, family = binomial(link = "logit")))
+m1 <- lme4::glmer(fairness ~ incomeShare_W* incomeShare_NW + (1 | X), cd, family = binomial(link = "logit"))
+summary(m1)
 
-summary(m1_1 <- lme4::glmer(fairness_num ~ cond * majority_share + (1 | id), Pilot1_July19_22, family = binomial(link = "logit")))
+m2 <- lme4::glmer(team_work ~ incomeShare_W* incomeShare_NW + (1 | X), cd, family = binomial(link = "logit"))
+summary(m2)
 
+m3 <- lme4::glmer(work_in_team ~ incomeShare_W* incomeShare_NW + (1 | X), cd, family = binomial(link = "logit"))
+summary(m3)
+
+m4 <- lme4::glmer(distrust ~ incomeShare_W* incomeShare_NW + (1 | X), cd, family = binomial(link = "logit"))
+summary(m4)
+
+summary(m1)
+summary(m2)
+summary(m3)
+summary(m4)
+
+#create plot
 reghelper::simple_slopes(m1)
+
+fairness_maineffect <- interactions::interact_plot(m1, pred = cd$fairness, modx = cd$nonwhite_share, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "majority held by...") + ylim(c(0,1))
+
+fairness_maineffect_annotated <- annotate_figure(fairness_maineffect,
+               top = text_grob("Fairness by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = fairness_maineffect_annotated, width = 8, height = 6, filename = "fairness_maineffect.jpg")
+
+
+#create html
+
+htmlreg(l = list(m1, m2, m3, m4), center = TRUE, stars = c(0.001, 0.01, 0.05),
+        bold = 0.05, caption = 'M1 = Fairness (DV), M2 = Teamwork (DV), M3 = Want to work in team (DV), M4 = Trust org (DV)',
+        caption.above = TRUE, digits = 3, leading.zero = F)
+
+###############################################################################
+#idea: regress them once for each DV?
+#example:
+#Fairness ~ white/non-white ratio (5 values) * income_ratio + control variables 
+#or maybe two options, would be good. (maj and equal, min)
+#would be good to plot them next to each other. 
+
+##summarise majority and minority
+## to do: check reliabilites for each scale
+
 ```
