@@ -2,12 +2,13 @@
 title: "25 faces"
 author: "Rama"
 date: "2022-07-21"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 #This is the analysis for the NW-W condition (1st pilot version).
 #Install necessary packages:
 ```{r setup, include=FALSE}
-install.packages("tidyverse")
 library(tidyverse)
 library(jsonlite)
 ```
@@ -26,7 +27,6 @@ library(texreg)
 library(reghelper)
 ```
 ```{r loading_data} 
-setwd("pilot1")
 ##### uploading every json file and creating one big file #####
 #unable to upload more than 100 files to git 
 #pls download "pilot1" from slack 
@@ -879,101 +879,26 @@ X = cd[!duplicated(cd[ , c("subject")]),] #we have 97 final participants
 ```
 ```{R}
 ## summary:cond: white-more; nwmore; equal but for each variation (5)
-
-#condition: 1-7
-cd$Maj_income_share <- cd$incomeRatio
-cd$Maj_income_share
-cd$Maj_income_share[cd$Maj_income_share == "1" ] <- 75
-cd$Maj_income_share[cd$Maj_income_share == "2" ] <- 70
-cd$Maj_income_share[cd$Maj_income_share == "3" ] <- 65
-cd$Maj_income_share[cd$Maj_income_share == "4" ] <- 60
-cd$Maj_income_share[cd$Maj_income_share == "5" ] <- 65
-cd$Maj_income_share[cd$Maj_income_share == "6" ] <- 70
-cd$Maj_income_share[cd$Maj_income_share == "7" ] <- 75
-
-cd$Majority <- cd$incomeRatio
-cd$Maj_income_share[cd$Maj_income_share == "1" ] <- "W"
-cd$Maj_income_share[cd$Maj_income_share == "2" ] <- "W"
-cd$Maj_income_share[cd$Maj_income_share == "3" ] <- "W"
-cd$Maj_income_share[cd$Maj_income_share == "4" ] <- "E"
-cd$Maj_income_share[cd$Maj_income_share == "5" ] <- "NW"
-cd$Maj_income_share[cd$Maj_income_share == "6" ] <- "NW"
-cd$Maj_income_share[cd$Maj_income_share == "7" ] <- "NW"
+cd$incomeShare_trial<-cd$nw_variations/cd$nNonWhiteTrial
 
 # Main Effects Analysis
 
-m1 <- lme4::glmer(fairness ~ nonwhite_share*Maj_income_share*Majority + (1 | X), cd, family = binomial(link = "logit"))
+m1 <- lme4::glmer(fairness ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
 summary(m1)
 
+m2 <- lme4::glmer(team_work ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
+summary(m2)
 
+m3 <- lme4::glmer(work_in_team ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
+summary(m3)
+
+m4 <- lme4::glmer(distrust ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
+summary(m4)
 #######################################################
 ########################################################
-
-m2 <- lme4::glmer(team_work ~ incomeShare_NW + (1 | X), cd, family = binomial(link = "logit"))
-summary(m2)
-
-m3 <- lme4::glmer(work_in_team ~ incomeShare_NW + (1 | X), cd, family = binomial(link = "logit"))
-summary(m3)
-
-m4 <- lme4::glmer(distrust ~ incomeShare_NW + (1 | X), cd, family = binomial(link = "logit"))
-summary(m4)
-
-summary(m1)
-summary(m2)
-summary(m3)
-summary(m4)
-
-# subset
-nw_maj <- subset(cd, incomeShare_NW>1)
-w_min <- subset(cd, incomeShare_W<1)
-nw_min <- subset(cd, incomeShare_NW<1)
-equal <- subset(cd, incomeShare_NW==1)
-
-
-
-#nw_maj$incomeShare_NW = factor(nw_maj$incomeShare_NW, levels=rev(levels(nw_maj$incomeShare_NW)))
-#nw_maj<-as.matrix(nw_maj)
-
-# Main Effects Analysis - minority has maj income
-m5 <- lme4::glmer(fairness ~ incomeShare_NW + (1 | X), nw_maj, family = binomial(link = "logit"))
-summary(m5)
-#pos. effect incomeshare nw on fairness - not significant
-# if income nw_maj rises the fairness rises  2.57
-
-m6 <- lme4::glmer(team_work ~ incomeShare_NW+ (1 | X), nw_maj, family = binomial(link = "logit"))
-summary(m6)
-#not significant
-
-m7 <- lme4::glmer(work_in_team ~ incomeShare_NW + (1 | X), nw_maj, family = binomial(link = "logit"))
-summary(m7)
-#not significant
-
-m8 <- lme4::glmer(distrust ~ incomeShare_NW + (1 | X), nw_maj, family = binomial(link = "logit"))
-summary(m8)
-#not significant
-
-# Main Effects Analysis - minority has min income
-m9 <- lme4::glmer(fairness ~ incomeShare_NW * nw_min + (1 | X), nw_maj, family = binomial(link = "logit"))
-summary(m9)
-#add interaction! 
-#compile all data
-
-
-m10 <- lme4::glmer(team_work ~ incomeShare_NW+ (1 | X), nw_min, family = binomial(link = "logit"))
-summary(m10)
-
-m11 <- lme4::glmer(work_in_team ~ incomeShare_NW + (1 | X), nw_min, family = binomial(link = "logit"))
-summary(m11)
-
-m12 <- lme4::glmer(distrust ~ incomeShare_NW + (1 | X), nw_min, family = binomial(link = "logit"))
-summary(m12)
-
-#equal
-m13 <- lme4::glmer(fairness ~ incomeShare_NW + (1 | X), equal, family = binomial(link = "logit"))
-summary(m13)
-
-
 ######################## AFTER HOOMAN FEEDBACK####################
+
+```
 
 #create plot
 reghelper::simple_slopes(m1)
