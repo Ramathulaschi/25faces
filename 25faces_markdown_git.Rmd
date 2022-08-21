@@ -3,16 +3,20 @@ title: "25 faces"
 author: "Rama"
 date: "2022-07-21"
 output:
-  pdf_document: default
-  html_document: default
+  html_document:
+    theme: flatly
+    code_folding: hide
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
 ---
-#This is the analysis for the NW-W condition (1st pilot version).
-#Install necessary packages:
-```{r setup, include=FALSE}
+# Preprocessing & Cleaning
+
+```{r preprocessing, warning=FALSE, results=FALSE, messages = FALSE, include = FALSE}
+
 library(tidyverse)
 library(jsonlite)
-```
-```{r data_loading}
 library(jsonlite)
 library(dplyr)
 library(tidyverse)
@@ -25,583 +29,16 @@ library(interactions)
 library(ggpubr)
 library(texreg)
 library(reghelper)
-```
-```{r loading_data} 
-##### uploading every json file and creating one big file #####
-#unable to upload more than 100 files to git 
-#pls download "pilot1" from slack 
 
-#read all the files with jason ending
-filenames <- list.files(pattern="*.json", recursive = T)
-
-files <- lapply (filenames, fromJSON)
-isCompleted <- lapply(files, nrow)
-# we have 12 trials in total
-completedData <- files[isCompleted == 12 ]
-# every trial is in all_data combined
-all_data <- do.call("bind_rows", completedData)
-raw_data <- all_data
-unique(raw_data$trial_type)
-```
-```{R}
-#data transformation as the data from different variables look different - goal: to combine them in the end
-
-# trial index 0 = attention check
-atten_trial <- 0
-atten_data <- raw_data[raw_data$trial_index == atten_trial, ]
-atten_data <- atten_data %>% unnest(response)
-names(atten_data)[names(atten_data) == "response"] <- "attention_check"
-
-# trial index 1 = prolific id 
-prolific_trial <- 1
-prolific_data <- raw_data[raw_data$trial_index == prolific_trial, ]
-prolific_data <- prolific_data %>% unnest(response)
-names(prolific_data)[names(prolific_data) == "response"] <- "prolific_id"
-
-# trial index 2 = response to start the questionnaire
-start_response_trial <- 2
-start_response_data <- raw_data[raw_data$trial_index == start_response_trial, ]
-start_response_data <- start_response_data %>% unnest(response)
-names(start_response_data)[names(start_response_data) == "response"] <- "start_response"
-
-#trial index 3,4,5,6,7 for the organizations 1-5
-org_trials <- c(3,4,5, 6, 7)
-org_data <- raw_data[raw_data$trial_index %in% org_trials, ]
-org_data <- org_data %>% unnest(response)  
-org_data <- org_data %>% pivot_wider(names_from = name, values_from = value)
-
-#trial index 6 for the moderator SDO 
-moderator_trials <- c(8)
-mod_data <- raw_data[raw_data$trial_index %in% moderator_trials, ]
-mod_data <- mod_data %>% unnest(response) 
-mod_data <- mod_data %>% pivot_wider(names_from = name, values_from = value)
-
-#trial index 9 for the demographics
-demographics_trials <- c(9)
-demo_data <- raw_data[raw_data$trial_index %in% demographics_trials, ]
-demo_data <- demo_data %>% unnest(response)
-demo_data_wo_ethnic <- demo_data[demo_data$name != "ethnic[]", ]  %>% pivot_wider(names_from = name, values_from = value)
-demo_data_ethnic <- demo_data[demo_data$name == "ethnic[]", ]
-demo_data_ethnic <- demo_data_ethnic %>% nest(ethnic = c( value))
-demo_data <- inner_join(demo_data_ethnic[, c("rt", "subject", "ethnic")], demo_data_wo_ethnic, by="subject")
-  
-# trial index 10 for feedback 
-followup_trials <- c(10)
-followup_data <- raw_data[raw_data$trial_index %in% followup_trials, ]
-followup_data <- followup_data %>% unnest(response)
-names(followup_data)[names(followup_data) == "response"] <- "followup_response"
-
-```
-```{r join_individual_data}
-#join all the data trial from above into one 
-demo_cols <- c("ethnic", "age", "children", "economic", "edu", "employment", "gender", "gender_description", "income", "ladder", "marital", "social")
-df <- inner_join(org_data, mod_data[, c("rt", "subject", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "B1", "B2", "B3", "B4", "B5", "B6")], by = "subject") 
-df <- inner_join(df, demo_data[, c("subject", demo_cols)], by = "subject") 
-df <- inner_join(df, followup_data[, c("subject", "followup_response")], by = "subject") 
-df <- inner_join(df, atten_data[, c("subject", "attention_check")], by = "subject")
-df <- inner_join(df, start_response_data[, c("subject", "start_response")], by = "subject")
-
-```
-```{r}
-
-#finding out lists in df 
-sapply(df,class)
-
-#unlist df to work with it
-preprocessed_data <- apply(df,2,as.character)
-
-#create csv document form json
-x = write.csv(preprocessed_data, "/Users/ramat/Desktop/preprocessed_data_final.csv")
-
-```
-```{R}
-#cleaning up the environment (not necessary step)
-remove(mod_data,org_data, prolific_data,raw_data,start_response_data,all_data, atten_data,completedData,demo_data, demo_data_ethnic, demo_data_wo_ethnic, files, followup_data, isCompleted)
-```
-```{R}
-############################Cleaning the excel################################# 
-#Set working directory  
 setwd("/Users/ramat/Desktop/")
-
-#load full csv data (preprocessed data)
-pd <- read.csv("/Users/ramat/Desktop/preprocessed_data_final.csv")
-
-#Dropping those participants who failed the attention checks
-#TRIAL INDEX 0
-pd$attention_check[pd$attention_check=="r"] <- 1
-pd$attention_check[pd$attention_check=="R"] <- 1
-#Checking for failed attention checks
-pd$attention_check[pd$attention_check!=1] 
-#setting them to 0
-pd$attention_check[pd$attention_check!=1] <- 0
-pd$attention_check[is.na(pd$attention_check)==T] <- 0
-#only put 1 into new subset
-pd1 <- subset(pd, attention_check == 1)
-
-#only considering participants who started the questionnaire 
-#TRIAL INDEX 2
-pd1$start_response[pd1$start_response==0] <- 1
-pd1$start_response[is.na(pd1$start_response)==T] <- 0
-pd1 <- subset(pd1, start_response == 1)
-
-
-#during cleaning some rows were more than one time - to remove them first
-#Checking for the same rows
-pd1[47,]==pd1[48,]
-pd2=pd1
-#cleaning out the rows and duplicated data
-pd1<-distinct(pd2[,2:56])
-#duplicated(pd1[,2:56])
-
 ```
-```{R}
-################################Renaming variables#############################
-
-#TRIAL INDEX 3-7
-#1.DV - Fairness
-names(pd1)[names(pd1) == "perception1"] <- "fairness"
-#correcting errors in Yes and NO field
-pd1$fairness[pd1$fairness=="c(\"N\", \"N\")"] <- "N"
-pd1$fairness[pd1$fairness=="c(\"Y\", \"Y\")"] <- "Y"
-#changing into 0 and 1
-pd1$fairness[pd1$fairness == "Y"] <- 0
-pd1$fairness[pd1$fairness == "N"] <- 1
-
-#2.DV - Team work
-names(pd1)[names(pd1) == "perception2"] <- "team_work"
-#correcting errors in Yes and NO field
-pd1$team_work[pd1$team_work=="c(\"N\", \"N\")"] <- "N"
-pd1$team_work[pd1$team_work=="c(\"Y\", \"Y\")"] <- "Y"
-#checking if the fields look correct
-pd1$team_work
-#changing into 0 and 1
-pd1$teamwork[pd1$team_work == "Y"] <- 0
-pd1$teamwork[pd1$team_work == "N"] <- 1
-
-#3.DV - Work in teams
-names(pd1)[names(pd1) == "perception3"] <- "work_in_team"
-#correcting errors in Yes and NO field
-pd1$work_in_team[pd1$work_in_team=="c(\"N\", \"N\")"] <- "N"
-pd1$work_in_team[pd1$work_in_team=="c(\"Y\", \"Y\")"] <- "Y"
-#checking if the fields look correct
-pd1$work_in_team
-#changing into 0 and 1
-pd1$workinteam[pd1$work_in_team == "Y"] <- 0
-pd1$workinteam[pd1$work_in_team == "N"] <- 1
-
-#4.DV - personal interest to work in team
-names(pd1)[names(pd1) == "perception4"] <- "distrust"
-#correcting errors in Yes and NO field
-pd1$distrust[pd1$distrust=="c(\"N\", \"N\")"] <- "N"
-pd1$distrust[pd1$distrust=="c(\"Y\", \"Y\")"] <- "Y"
-#checking if the fields look correct
-pd1$distrust
-#changing into 0 and 1
-pd1$distrust[pd1$distrust == "Y"] <- 0
-pd1$distrust[pd1$distrust == "N"] <- 1
-
-
-#Trial Index 8 - Moderators
-#5a.SDO - scale - just the RENAMING!
-names(pd1)[names(pd1) == "A1"] <- "s1_earn_reward"
-#correcting errors in field
-pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"1\", \"1\")"] <- "1"
-pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"2\", \"2\")"] <- "2"
-pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"3\", \"3\")"] <- "3"
-pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"4\", \"4\")"] <- "4"
-pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"5\", \"5\")"] <- "5"
-pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"6\", \"6\")"] <- "6"
-pd1$s1_earn_reward[pd1$s1_earn_reward=="c(\"7\", \"7\")"] <- "7"
-#checking if the fields look correct
-pd1$s1_earn_reward
-
-
-names(pd1)[names(pd1) == "A2"] <- "s2_inferior"
-#correcting errors in field
-pd1$s2_inferior[pd1$s2_inferior=="c(\"1\", \"1\")"] <- "1"
-pd1$s2_inferior[pd1$s2_inferior=="c(\"2\", \"2\")"] <- "2"
-pd1$s2_inferior[pd1$s2_inferior=="c(\"3\", \"3\")"] <- "3"
-pd1$s2_inferior[pd1$s2_inferior=="c(\"4\", \"4\")"] <- "4"
-pd1$s2_inferior[pd1$s2_inferior=="c(\"5\", \"5\")"] <- "5"
-pd1$s2_inferior[pd1$s2_inferior=="c(\"6\", \"6\")"] <- "6"
-pd1$s2_inferior[pd1$s2_inferior=="c(\"7\", \"7\")"] <- "7"
-#checking if the fields look correct
-pd1$s1_earn_reward
-
-names(pd1)[names(pd1) == "A3"] <- "s3_group_dominate"
-#correcting errors in field
-pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"1\", \"1\")"] <- "1"
-pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"2\", \"2\")"] <- "2"
-pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"3\", \"3\")"] <- "3"
-pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"4\", \"4\")"] <- "4"
-pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"5\", \"5\")"] <- "5"
-pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"6\", \"6\")"] <- "6"
-pd1$s3_group_dominate[pd1$s3_group_dominate=="c(\"7\", \"7\")"] <- "7"
-#checking if the fields look correct
-pd1$s3_group_dominate
-
-
-names(pd1)[names(pd1) == "A4"] <- "s4_bottom_deserve"
-#correcting errors in 1 and 5 field
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"1\", \"1\")"] <- "1"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"2\", \"2\")"] <- "2"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"3\", \"3\")"] <- "3"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"4\", \"4\")"] <- "4"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"5\", \"5\")"] <- "5"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"6\", \"6\")"] <- "6"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve=="c(\"7\", \"7\")"] <- "7"
-#checking if the fields look correct
-pd1$s4_bottom_deserve
-
-names(pd1)[names(pd1) == "A5"] <- "s5_group_equality"
-#correcting errors in 1 and 5 field
-pd1$s5_group_equality[pd1$s5_group_equality=="c(\"1\", \"1\")"] <- "1"
-pd1$s5_group_equality[pd1$s5_group_equality=="c(\"2\", \"2\")"] <- "2"
-pd1$s5_group_equality[pd1$s5_group_equality=="c(\"3\", \"3\")"] <- "3"
-pd1$s5_group_equality[pd1$s5_group_equality=="c(\"4\", \"4\")"] <- "4"
-pd1$s5_group_equality[pd1$s5_group_equality=="c(\"5\", \"5\")"] <- "5"
-pd1$s5_group_equality[pd1$s5_group_equality=="c(\"6\", \"6\")"] <- "6"
-pd1$s5_group_equality[pd1$s5_group_equality=="c(\"7\", \"7\")"] <- "7"
-#checking if the fields look correct
-pd1$s5_group_equality
-
-names(pd1)[names(pd1) == "A6"] <- "s6_group_equal_unjust"
-#correcting errors in 1 and 5 field
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"1\", \"1\")"] <- "1"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"2\", \"2\")"] <- "2"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"3\", \"3\")"] <- "3"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"4\", \"4\")"] <- "4"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"5\", \"5\")"] <- "5"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"6\", \"6\")"] <- "6"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust=="c(\"7\", \"7\")"] <- "7"
-#checking if the fields look correct
-pd1$s6_group_equal_unjust
-
-names(pd1)[names(pd1) == "A7"] <- "s7_act_equalize"
-#correcting errors in 1 and 5 field
-pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"1\", \"1\")"] <- "1"
-pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"2\", \"2\")"] <- "2"
-pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"3\", \"3\")"] <- "3"
-pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"4\", \"4\")"] <- "4"
-pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"5\", \"5\")"] <- "5"
-pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"6\", \"6\")"] <- "6"
-pd1$s7_act_equalize[pd1$s7_act_equalize=="c(\"7\", \"7\")"] <- "7"
-#checking if the fields look correct
-pd1$s7_act_equalize
-
-names(pd1)[names(pd1) == "A8"] <- "s8_succeed_equal"
-#correcting errors in 1 and 5 field
-pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"1\", \"1\")"] <- "1"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"2\", \"2\")"] <- "2"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"3\", \"3\")"] <- "3"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"4\", \"4\")"] <- "4"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"5\", \"5\")"] <- "5"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"6\", \"6\")"] <- "6"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal=="c(\"7\", \"7\")"] <- "7"
-#checking if the fields look correct
-
-#5b.Belief in Just world scale
-names(pd1)[names(pd1) == "B1"] <- "b1_just_world"
-pd1$b1_just_world[pd1$b1_just_world=="c(\"1\", \"1\")"] <- "1"
-pd1$b1_just_world[pd1$b1_just_world=="c(\"2\", \"2\")"] <- "2"
-pd1$b1_just_world[pd1$b1_just_world=="c(\"3\", \"3\")"] <- "3"
-pd1$b1_just_world[pd1$b1_just_world=="c(\"4\", \"4\")"] <- "4"
-pd1$b1_just_world[pd1$b1_just_world=="c(\"5\", \"5\")"] <- "5"
-pd1$b1_just_world[pd1$b1_just_world=="c(\"6\", \"6\")"] <- "6"
-
-
-names(pd1)[names(pd1) == "B2"] <- "b2_people_deserve"
-pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"1\", \"1\")"] <- "1"
-pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"2\", \"2\")"] <- "2"
-pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"3\", \"3\")"] <- "3"
-pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"4\", \"4\")"] <- "4"
-pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"5\", \"5\")"] <- "5"
-pd1$b2_people_deserve[pd1$b2_people_deserve=="c(\"6\", \"6\")"] <- "6"
-
-
-names(pd1)[names(pd1) == "B3"] <- "b3_confident_justice"
-pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"1\", \"1\")"] <- "1"
-pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"2\", \"2\")"] <- "2"
-pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"3\", \"3\")"] <- "3"
-pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"4\", \"4\")"] <- "4"
-pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"5\", \"5\")"] <- "5"
-pd1$b3_confident_justice[pd1$b3_confident_justice=="c(\"6\", \"6\")"] <- "6"
-
-
-names(pd1)[names(pd1) == "B4"] <- "b4_compensate_injustice"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"1\", \"1\")"] <- "1"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"2\", \"2\")"] <- "2"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"3\", \"3\")"] <- "3"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"4\", \"4\")"] <- "4"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"5\", \"5\")"] <- "5"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice=="c(\"6\", \"6\")"] <- "6"
-
-
-names(pd1)[names(pd1) == "B5"] <- "b5_injust_exeception"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"1\", \"1\")"] <- "1"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"2\", \"2\")"] <- "2"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"3\", \"3\")"] <- "3"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"4\", \"4\")"] <- "4"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"5\", \"5\")"] <- "5"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception=="c(\"6\", \"6\")"] <- "6"
-
-
-names(pd1)[names(pd1) == "B6"] <- "b6_fair_decision"
-pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"1\", \"1\")"] <- "1"
-pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"2\", \"2\")"] <- "2"
-pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"3\", \"3\")"] <- "3"
-pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"4\", \"4\")"] <- "4"
-pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"5\", \"5\")"] <- "5"
-pd1$b6_fair_decision[pd1$b6_fair_decision=="c(\"6\", \"6\")"] <- "6"
-
-
-#ethnic
-pd1$ethnic[pd1$ethnic=="list(value = \"Asian\")"] <- "Asian"
-pd1$ethnic[pd1$ethnic=="list(value = c(\"Asian\", \"Asian\"))"] <- "Asian"
-pd1$ethnic[pd1$ethnic=="list(value = \"White\")"] <- "White"
-pd1$ethnic[pd1$ethnic=="list(value = c(\"White\", \"White\"))"] <- "White"
-pd1$ethnic[pd1$ethnic=="list(value = \"Black-AfrAmr\")"] <- "Black-AfrAmr"
-pd1$ethnic[pd1$ethnic=="list(value = \"Other\")" ] <- "Other"
-
-#age
-pd1$age[pd1$age=="c(\"19\", \"19\")"] <- "19"
-pd1$age[pd1$age=="c(\"29\", \"29\")"] <- "29"
-pd1$age[pd1$age=="c(\"31\", \"31\")"] <- "31"
-pd1$age[pd1$age=="c(\"30\", \"30\")"] <- "30"
-
-#children
-pd1$children[pd1$children=="c(\"0\", \"0\")"] <- "0"
-pd1$children[pd1$children=="c(\"2\", \"2\")"] <- "2"
-
-#economic
-pd1$economic[pd1$economic=="c(\"1\", \"1\")"] <- "1"
-pd1$economic[pd1$economic=="c(\"2\", \"2\")"] <- "2"
-
-#education
-pd1$edu[pd1$edu=="c(\"4\", \"4\")"] <- "4"
-pd1$edu[pd1$edu=="c(\"6\", \"6\")"] <- "6"
-pd1$edu[pd1$edu=="c(\"5\", \"5\")"] <- "5"
-pd1$edu[pd1$edu=="c(\"2\", \"2\")"] <- "2"
-
-#employment
-pd1$employment[pd1$employment=="c(\"1\", \"1\")"] <- "1"
-pd1$employment[pd1$employment=="c(\"3\", \"3\")"] <- "3"
-
-#gender
-pd1$gender[pd1$gender=="c(\"f\", \"f\")"] <- "f"
-pd1$gender[pd1$gender=="c(\"o\", \"o\")"] <- "o"
-
-#gender description 
-pd1$gender_description[pd1$gender_description=="c(\"Nonbinary\", \"Nonbinary\")"] <- "Nonbinary"
-
-#income
-pd1$income[pd1$income=="c(\"3\", \"3\")"] <- "3"
-pd1$income[pd1$income=="c(\"6\", \"6\")"] <- "6"
-pd1$income[pd1$income=="c(\"11\", \"11\")"] <- "11"
-pd1$income[pd1$income=="c(\"4\", \"4\")"] <- "4"
-pd1$income
-
-#ladder
-pd1$ladder[pd1$ladder=="c(\"4\", \"4\")"] <- "4"
-pd1$ladder[pd1$ladder=="c(\"6\", \"6\")"] <- "6"
-pd1$ladder[pd1$ladder=="c(\"5\", \"5\")"] <- "5"
-
-#marital status 
-pd1$marital[pd1$marital == 1] <- "Divorced"
-pd1$marital[pd1$marital=="c(\"1\", \"1\")"] <- "Divorced"
-pd1$marital[pd1$marital == 2] <- "Married"
-pd1$marital[pd1$marital == 3] <- "Seperated"
-pd1$marital[pd1$marital == 4] <- "Widowed"
-pd1$marital[pd1$marital=="c(\"4\", \"4\")"] <- "Widowed"
-
-#social
-pd1$social[pd1$social=="c(\"2\", \"2\")"] <- "2"
-pd1$social[pd1$social=="c(\"1\", \"1\")"] <- "1"
-
-#2. edu status
-pd1$edu[pd1$edu == 1] <- "Some high school or less"
-pd1$edu[pd1$edu == 2] <- "Two year college degree"
-pd1$edu[pd1$edu == 3] <- "Some college but no degree"
-pd1$edu[pd1$edu == 4] <- "High school or GED"
-pd1$edu[pd1$edu == 5] <- "Four year college degree"
-pd1$edu[pd1$edu == 6] <- "Graduate degree"
-
-#3. Employment
-pd1$employment[pd1$employment == 1] <- "Full-time"
-pd1$employment[pd1$employment == 2] <- " Part-time"
-pd1$employment[pd1$employment == 3] <- "Prefer not to answer"
-pd1$employment[pd1$employment == 4] <- "Unemployed"
-
-#4. Income
-pd1$income[pd1$income == 1] <- "$10,000 to $19,999 "
-pd1$income[pd1$income == 2] <- "$100,000 to $124,999"
-pd1$income[pd1$income == 3] <- "$125,000 to $149,999"
-pd1$income[pd1$income == 4] <- "$150,000 to $199,999"
-pd1$income[pd1$income == 5] <- "$20,000 to $29,999"
-pd1$income[pd1$income == 6] <- "$200,000 or more"
-pd1$income[pd1$income == 7] <- "$30,000 to $39,999"
-pd1$income[pd1$income == 8] <- "$40,000 to $49,999"
-pd1$income[pd1$income == 9] <- "$50,000 to $59,999"
-pd1$income[pd1$income == 10] <- "$60,000 to $69,999"
-pd1$income[pd1$income == 11] <- "$70,000 to $79,999"
-pd1$income[pd1$income == 12] <- "$80,000 to $89,999"
-pd1$income[pd1$income == 13] <- "$90,000 to $99,999"
-pd1$income[pd1$income == 14] <- "Less than $10,000"
-
-#5.Political orientation - social issues
-pd1$economic[pd1$economic == 1] <- "Conservative"
-pd1$economic[pd1$economic == 2] <- "Liberal"
-pd1$economic[pd1$economic == 3] <- "Moderate"
-pd1$economic[pd1$economic == 4] <- "Slightly conservative"
-pd1$economic[pd1$economic == 5] <- "Slightly liberal"
-pd1$economic[pd1$economic == 6] <- "Very conservative"
-pd1$economic[pd1$economic == 7] <- "Very liberal"
-
-#6.Political orientation - economic issues
-pd1$social[pd1$social == 1] <- "Conservative"
-pd1$social[pd1$social == 2] <- "Liberal"
-pd1$social[pd1$social == 3] <- "Moderate"
-pd1$social[pd1$social == 4] <- "Slightly conservative"
-pd1$social[pd1$social == 5] <- "Slightly liberal"
-pd1$social[pd1$social == 6] <- "Very conservative"
-pd1$social[pd1$social == 7] <- "Very liberal"
-
-#SDO scale
-pd1$s1_earn_reward[pd1$s1_earn_reward == 1] <- "Strongly favor"
-pd1$s1_earn_reward[pd1$s1_earn_reward == 2] <- "Somewhat favor"
-pd1$s1_earn_reward[pd1$s1_earn_reward == 3] <- "Slightly favor"
-pd1$s1_earn_reward[pd1$s1_earn_reward == 4] <- "Neutral"
-pd1$s1_earn_reward[pd1$s1_earn_reward == 5] <- "Slightly oppose"
-pd1$s1_earn_reward[pd1$s1_earn_reward == 6] <- "Somewhat oppose"
-pd1$s1_earn_reward[pd1$s1_earn_reward == 7] <- "Strongly oppose"
-
-pd1$s2_inferior[pd1$s2_inferior == 1] <- "Strongly favor"
-pd1$s2_inferior[pd1$s2_inferior == 2] <- "Somewhat favor"
-pd1$s2_inferior[pd1$s2_inferior == 3] <- "Slightly favor"
-pd1$s2_inferior[pd1$s2_inferior == 4] <- "Neutral"
-pd1$s2_inferior[pd1$s2_inferior == 5] <- "Slightly oppose"
-pd1$s2_inferior[pd1$s2_inferior == 6] <- "Somewhat oppose"
-pd1$s2_inferior[pd1$s2_inferior == 7] <- "Strongly oppose"
-
-pd1$s3_group_dominate[pd1$s3_group_dominate == 1] <- "Strongly favor"
-pd1$s3_group_dominate[pd1$s3_group_dominate == 2] <- "Somewhat favor"
-pd1$s3_group_dominate[pd1$s3_group_dominate == 3] <- "Slightly favor"
-pd1$s3_group_dominate[pd1$s3_group_dominate == 4] <- "Neutral"
-pd1$s3_group_dominate[pd1$s3_group_dominate == 5] <- "Slightly oppose"
-pd1$s3_group_dominate[pd1$s3_group_dominate == 6] <- "Somewhat oppose"
-pd1$s3_group_dominate[pd1$s3_group_dominate == 7] <- "Strongly oppose"
-
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 1] <- "Strongly favor"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 2] <- "Somewhat favor"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 3] <- "Slightly favor"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 4] <- "Neutral"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 5] <- "Slightly oppose"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 6] <- "Somewhat oppose"
-pd1$s4_bottom_deserve[pd1$s4_bottom_deserve == 7] <- "Strongly oppose"
-
-
-pd1$s5_group_equality[pd1$s5_group_equality == 1] <- "Strongly favor"
-pd1$s5_group_equality[pd1$s5_group_equality == 2] <- "Somewhat favor"
-pd1$s5_group_equality[pd1$s5_group_equality == 3] <- "Slightly favor"
-pd1$s5_group_equality[pd1$s5_group_equality == 4] <- "Neutral"
-pd1$s5_group_equality[pd1$s5_group_equality == 5] <- "Slightly oppose"
-pd1$s5_group_equality[pd1$s5_group_equality == 6] <- "Somewhat oppose"
-pd1$s5_group_equality[pd1$s5_group_equality == 7] <- "Strongly oppose"
-
-
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 1] <- "Strongly favor"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 2] <- "Somewhat favor"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 3] <- "Slightly favor"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 4] <- "Neutral"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 5] <- "Slightly oppose"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 6] <- "Somewhat oppose"
-pd1$s6_group_equal_unjust[pd1$s6_group_equal_unjust == 7] <- "Strongly oppose"
-
-
-pd1$s7_act_equalize[pd1$s7_act_equalize == 1] <- "Strongly favor"
-pd1$s7_act_equalize[pd1$s7_act_equalize == 2] <- "Somewhat favor"
-pd1$s7_act_equalize[pd1$s7_act_equalize == 3] <- "Slightly favor"
-pd1$s7_act_equalize[pd1$s7_act_equalize == 4] <- "Neutral"
-pd1$s7_act_equalize[pd1$s7_act_equalize == 5] <- "Slightly oppose"
-pd1$s7_act_equalize[pd1$s7_act_equalize == 6] <- "Somewhat oppose"
-pd1$s7_act_equalize[pd1$s7_act_equalize == 7] <- "Strongly oppose"
-
-
-pd1$s8_succeed_equal[pd1$s8_succeed_equal == 1] <- "Strongly favor"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal == 2] <- "Somewhat favor"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal == 3] <- "Slightly favor"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal == 4] <- "Neutral"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal == 5] <- "Slightly oppose"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal == 6] <- "Somewhat oppose"
-pd1$s8_succeed_equal[pd1$s8_succeed_equal == 7] <- "Strongly oppose"
-
-
-#9. Belief in just world
-pd1$b1_just_world[pd1$b1_just_world == 1] <- "Strongly disagree"
-pd1$b1_just_world[pd1$b1_just_world == 2] <- "Disagree"
-pd1$b1_just_world[pd1$b1_just_world == 3] <- "Slightly disagree"
-pd1$b1_just_world[pd1$b1_just_world == 4] <- "Slightly Agree"
-pd1$b1_just_world[pd1$b1_just_world == 5] <- "Agree"
-pd1$b1_just_world[pd1$b1_just_world == 6] <- "Strongly agree"
-
-
-pd1$b2_people_deserve[pd1$b2_people_deserve == 1] <- "Strongly disagree"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 2] <- "Disagree"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 3] <- "Slightly disagree"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 4] <- "Slightly Agree"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 5] <- "Agree"
-pd1$b2_people_deserve[pd1$b2_people_deserve == 6] <- "Strongly agree"
-
-
-
-pd1$b3_confident_justice[pd1$b3_confident_justice == 1] <- "Strongly disagree"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 2] <- "Disagree"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 3] <- "Slightly disagree"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 4] <- "Slightly Agree"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 5] <- "Agree"
-pd1$b3_confident_justice[pd1$b3_confident_justice == 6] <- "Strongly agree"
-
-
-
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 1] <- "Strongly disagree"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 2] <- "Disagree"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 3] <- "Slightly disagree"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 4] <- "Slightly Agree"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 5] <- "Agree"
-pd1$b4_compensate_injustice[pd1$b4_compensate_injustice == 6] <- "Strongly agree"
-
-
-
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 1] <- "Strongly disagree"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 2] <- "Disagree"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 3] <- "Slightly disagree"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 4] <- "Slightly Agree"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 5] <- "Agree"
-pd1$b5_injust_exeception[pd1$b5_injust_exeception == 6] <- "Strongly agree"
-
-
-pd1$b6_fair_decision[pd1$b6_fair_decision == 1] <- "Strongly disagree"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 2] <- "Disagree"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 3] <- "Slightly disagree"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 4] <- "Slightly Agree"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 5] <- "Agree"
-pd1$b6_fair_decision[pd1$b6_fair_decision == 6] <- "Strongly agree"
-
-
-#comments from people
-#I think I was supposed to consider the race and gender of these people, but not knowing anything about their jobs or their performance, it would have been prejudice for me to assume pay was unfair either way.
-#It was interesting that none of the employees appeared to be over age 30 or so.
-#For some of the questions, it might be best to split them into separate pages (such as four questions per page).  The questions/answers were spread too far across the page and were bunched together, which made it harder to read.
-
-#Writing the data into csv file
-x = write.csv(pd1, "/Users/ramat/Desktop/cleaned.csv")
-```
-```{R}
-setwd("/Users/ramat/Desktop/")
+```{r, warning=FALSE, results=FALSE, messages = FALSE, include = TRUE}
 
 #load full csv data (preprocessed data)
 cd <- read.csv("/Users/ramat/Desktop/cleaned.csv")
 #recode to do analysis
+```
+```{r, warning=FALSE, results=FALSE, messages = FALSE, include = FALSE}
 
 cd$fairness[cd$fairness == "Y"] <- 0
 cd$fairness[cd$fairness == "N"] <- 1
@@ -794,12 +231,16 @@ cd$marital[cd$marital ==  "Divorced"] <- 1
 cd$marital[cd$marital == "Married"] <- 2
 cd$marital[cd$marital == "Seperated"] <- 3
 cd$marital[cd$marital == "Widowed"] <- 4
+```
+## Creating variables for regression
+```{r, warning=FALSE, results=FALSE, messages = FALSE, include = TRUE}
 
 #changing up the variables for incomeRatio and trail conditions
 #1. non white share/whiteShare: of white(or non-white) / total employee.
 cd$nonwhite_share <- ((as.numeric(cd$nNonWhiteTrial))/25)*100
 cd$white_share <- ((as.numeric(cd$nWhiteTrial))/25)*100
-
+```
+```{r, warning=FALSE, results=FALSE, messages = FALSE, include = FALSE}
 variations <- read.csv("C:/Users/ramat/Desktop/variations.csv", sep = ";")
 
 #creating variations for non whites
@@ -864,7 +305,7 @@ cd$work_in_team<-as.numeric(cd$work_in_team)
 X = cd[!duplicated(cd[ , c("subject")]),] #we have 97 final participants
 
 ```
-```{R}
+```{r, warning=FALSE, results=TRUE, messages = FALSE, include = FALSE}
 
 #create factors 
 #cd$incomeShare_NW = as.factor(cd$incomeShare_NW)
@@ -877,53 +318,284 @@ X = cd[!duplicated(cd[ , c("subject")]),] #we have 97 final participants
 #cd$edu = as.numeric(cd$edu)
 
 ```
-```{R}
+```{r, warning=FALSE, results=TRUE, messages = FALSE, include = TRUE}
 ## summary:cond: white-more; nwmore; equal but for each variation (5)
 cd$incomeShare_trial<-cd$nw_variations/cd$nNonWhiteTrial
-
-# Main Effects Analysis
-
+```
+# Main Effect Analysis 
+## fairness
+```{r, results=FALSE, warning=FALSE, message=FALSE}
 m1 <- lme4::glmer(fairness ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
 summary(m1)
-
+```
+## team work
+```{r, results=FALSE, warning=FALSE, message=FALSE}
 m2 <- lme4::glmer(team_work ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
 summary(m2)
-
+```
+## work in team
+```{r, results=FALSE, warning=FALSE, message=FALSE}
 m3 <- lme4::glmer(work_in_team ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
 summary(m3)
-
+```
+## distrust
+```{r, results=FALSE, warning=FALSE, message=FALSE}
 m4 <- lme4::glmer(distrust ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
 summary(m4)
-#######################################################
-########################################################
-######################## AFTER HOOMAN FEEDBACK####################
+```
+## Table with Results
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 
+htmlreg(l = list(m1, m2, m3, m4), center = TRUE, stars = c(0.001, 0.01, 0.05),
+        bold = 0.05, caption = 'M1 = Fairness (DV), M2 = Team Work (DV), M3 = Want to work in team (DV), M4 = Distrust (DV)',
+        caption.above = TRUE, digits = 3, leading.zero = F)
 ```
 
-#create plot
-reghelper::simple_slopes(m1)
+# Main Effects Analysis with control variables
+## fairness
+```{r, results=FALSE, warning=FALSE, message=FALSE}
 
-fairness_maineffect <- interactions::interact_plot(m1, pred = cd$fairness, modx = cd$nonwhite_share, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "majority held by...") + ylim(c(0,1))
+m5 <- lme4::glmer(fairness ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m5)
+```
+### plot
+```{r, include=FALSE}
+fairness_maineffect <- interactions::interact_plot(m5, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "majority held by...") + ylim(c(0,1))
 
 fairness_maineffect_annotated <- annotate_figure(fairness_maineffect,
                top = text_grob("Fairness by Condition", color = "black", face = "bold", size = 14)) 
 ggsave(plot = fairness_maineffect_annotated, width = 8, height = 6, filename = "fairness_maineffect.jpg")
+```
+```{r}
+knitr::include_graphics("fairness_maineffect.jpg")
+```
 
+## work in team
+```{r, results=FALSE, warning=FALSE, message=FALSE}
 
-#create html
+m6 <- lme4::glmer(work_in_team ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m6)
+```
+### plot
+```{r}
+work_in_team_maineffect <- interactions::interact_plot(m6, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "majority held by...") + ylim(c(0,1))
 
-htmlreg(l = list(m1, m2, m3, m4), center = TRUE, stars = c(0.001, 0.01, 0.05),
-        bold = 0.05, caption = 'M1 = Fairness (DV), M2 = Teamwork (DV), M3 = Want to work in team (DV), M4 = Trust org (DV)',
+work_in_team_maineffect_annotated <- annotate_figure(work_in_team_maineffect,
+               top = text_grob("Work in Team by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = work_in_team_maineffect_annotated, width = 8, height = 6, filename = "work_in_team_maineffect.jpg")
+
+```
+```{r}
+knitr::include_graphics("work_in_team_maineffect.jpg")
+```
+
+## team work
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m7 <- lme4::glmer(team_work ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m7)
+```
+### plot
+```{r}
+team_work_maineffect <- interactions::interact_plot(m7, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "majority held by...") + ylim(c(0,1))
+
+team_work_maineffect_annotated <- annotate_figure(team_work_maineffect,
+               top = text_grob("Team work by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = work_in_team_maineffect_annotated, width = 8, height = 6, filename = "team_work_maineffect.jpg")
+
+```
+```{r}
+knitr::include_graphics("team_work_maineffect.jpg")
+```
+
+## distrust of the organization’s leadership
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m8 <- lme4::glmer(distrust ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m8)
+```
+### plot
+```{r}
+distrust_maineffect <- interactions::interact_plot(m8, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "majority held by...") + ylim(c(0,1))
+
+distrust_maineffect_annotated <- annotate_figure(distrust_maineffect,
+               top = text_grob("Team work by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = distrust_maineffect_annotated, width = 8, height = 6, filename = "distrust_maineffect.jpg")
+
+```
+```{r}
+knitr::include_graphics("distrust_maineffect.jpg")
+```
+
+## Table
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+
+htmlreg(l = list(m5, m6, m7, m8), center = TRUE, stars = c(0.001, 0.01, 0.05),
+        bold = 0.05, caption = 'M1 = Fairness (DV), M2 = Want to work in team (DV), M3 = Trust org (DV)',
         caption.above = TRUE, digits = 3, leading.zero = F)
+```
 
-###############################################################################
-#idea: regress them once for each DV?
-#example:
-#Fairness ~ white/non-white ratio (5 values) * income_ratio + control variables 
-#or maybe two options, would be good. (maj and equal, min)
-#would be good to plot them next to each other. 
+# Moderator Analysis: Political Orientation
+## fairness
+```{r}
 
-##summarise majority and minority
-## to do: check reliabilites for each scale
+summary(m1_1 <- lme4::glmer(fairness ~ PoliticalOrientation*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
+plot1_1 <- interactions::interact_plot(m1_1, pred = incomeShare_trial, modx = PoliticalOrientation, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "political orientation") + ylim(c(0,1))
+```
+
+## want to work in team
+```{r}
+summary(m2_1 <- lme4::glmer(work_in_team ~ PoliticalOrientation*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot2_1 <- interactions::interact_plot(m2_1, pred = incomeShare_trial, modx = PoliticalOrientation, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "political orientation") + ylim(c(0,1))
+```
+
+## team work
+```{r}
+summary(m3_1 <- lme4::glmer(team_work ~ PoliticalOrientation*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot3_1 <- interactions::interact_plot(m3_1, pred = incomeShare_trial, modx = PoliticalOrientation, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "political orientation") + ylim(c(0,1))
+```
+
+
+## distrust
+```{r}
+summary(m4_1 <- lme4::glmer(distrust ~ PoliticalOrientation*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot4_1 <- interactions::interact_plot(m4_1, pred = incomeShare_trial, modx = PoliticalOrientation, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "political orientation") + ylim(c(0,1))
+```
+``` {r}
+interaction_polorientation <- ggarrange(plot1_1, plot2_1, plot3_1, plot4_1, ncol = 2, nrow = 2, common.legend = T)
+
+ggsave(plot = interaction_polorientation, width = 10, height = 8, filename = "polorientation.jpg")
+knitr::include_graphics("polorientation.jpg")
+```
+
+
+# Moderator Analysis: SDO
+## fairness
+```{r}
+
+summary(m1_2 <- lme4::glmer(fairness ~ SDO *nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot1_2 <- interactions::interact_plot(m1_2, pred = incomeShare_trial, modx = SDO, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "SDO") + ylim(c(0,1))
+```
+
+## want to work in team
+```{r}
+summary(m2_2 <- lme4::glmer(work_in_team ~ SDO*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot2_2 <- interactions::interact_plot(m2_2, pred = incomeShare_trial, modx = SDO, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "SDO") + ylim(c(0,1))
+```
+
+## team work
+```{r}
+summary(m3_2 <- lme4::glmer(team_work ~ SDO*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot3_2 <- interactions::interact_plot(m3_2, pred = incomeShare_trial, modx = SDO, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "SDO") + ylim(c(0,1))
+```
+
+
+## distrust
+```{r}
+summary(m4_2 <- lme4::glmer(distrust ~ SDO*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot4_2 <- interactions::interact_plot(m4_2, pred = incomeShare_trial, modx = SDO, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "SDO") + ylim(c(0,1))
+```
+``` {r}
+interaction_SDO <- ggarrange(plot1_2, plot2_2, plot3_2, plot4_2, ncol = 2, nrow = 2, common.legend = T)
+
+ggsave(plot = interaction_SDO, width = 10, height = 8, filename = "SDO.jpg")
+knitr::include_graphics("SDO.jpg")
+```
+
+
+# Moderator Analysis: BJW
+## fairness
+```{r}
+
+summary(m1_3 <- lme4::glmer(fairness ~ BJW *nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot1_3 <- interactions::interact_plot(m1_3, pred = incomeShare_trial, modx = BJW, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "BJW") + ylim(c(0,1))
+```
+
+## want to work in team
+```{r}
+summary(m2_3 <- lme4::glmer(work_in_team ~ BJW*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot2_3 <- interactions::interact_plot(m2_3, pred = incomeShare_trial, modx = BJW, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "BJW") + ylim(c(0,1))
+```
+
+## team work
+```{r}
+summary(m3_3 <- lme4::glmer(team_work ~ BJW*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot3_3 <- interactions::interact_plot(m3_3, pred = incomeShare_trial, modx = BJW, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "BJW") + ylim(c(0,1))
+```
+
+
+## distrust
+```{r}
+summary(m4_3 <- lme4::glmer(distrust ~ BJW*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot4_3 <- interactions::interact_plot(m4_3, pred = incomeShare_trial, modx = BJW, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "BJW") + ylim(c(0,1))
+```
+``` {r}
+interaction_BJW <- ggarrange(plot1_3, plot2_3, plot3_3, plot4_3, ncol = 2, nrow = 2, common.legend = T)
+
+ggsave(plot = interaction_BJW, width = 10, height = 8, filename = "BJW.jpg")
+knitr::include_graphics("BJW.jpg")
+```
+
+# Moderator Analysis: Race
+## fairness
+```{r}
+summary(m1_4 <- lme4::glmer(fairness ~ ethnic *nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot1_4 <- interactions::interact_plot(m1_4, pred = incomeShare_trial, modx = ethnic, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "ethnic") + ylim(c(0,1))
+```
+
+## want to work in team
+```{r}
+summary(m2_4 <- lme4::glmer(work_in_team ~ ethnic*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot2_4 <- interactions::interact_plot(m2_4, pred = incomeShare_trial, modx = ethnic, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "ethnic") + ylim(c(0,1))
+```
+
+## team work
+```{r}
+summary(m3_4 <- lme4::glmer(team_work ~ ethnic*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot3_4 <- interactions::interact_plot(m3_4, pred = incomeShare_trial, modx = ethnic, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "ethnic") + ylim(c(0,1))
+```
+
+
+## distrust
+```{r}
+summary(m4_4 <- lme4::glmer(distrust ~ ethnic*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+
+plot4_4 <- interactions::interact_plot(m4_4, pred = incomeShare_trial, modx = ethnic, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "ethnic") + ylim(c(0,1))
+```
+``` {r}
+interaction_ethnic <- ggarrange(plot1_4, plot2_4, plot3_4, plot4_4, ncol = 2, nrow = 2, common.legend = T)
+
+ggsave(plot = interaction_ethnic, width = 10, height = 8, filename = "ethnic.jpg")
+knitr::include_graphics("ethnic.jpg")
 ```
