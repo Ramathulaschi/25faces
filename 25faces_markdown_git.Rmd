@@ -6,10 +6,13 @@ output:
   html_document:
     theme: flatly
     code_folding: hide
-    toc: true
+    toc: yes
     toc_depth: 4
-    toc_float: true
-    number_sections: true
+    toc_float: yes
+    number_sections: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
 ---
 # Preprocessing & Cleaning
 
@@ -50,7 +53,9 @@ cd$work_in_team[cd$work_in_team == "Y"] <- 0
 cd$work_in_team[cd$work_in_team == "N"] <- 1
 
 cd$distrust[cd$work_in_team == "Y"] <- 0
+# YES = I trust the organization’s leadership to make good decisions.
 cd$distrust[cd$work_in_team == "N"] <- 1
+# NO = I do not trust the organization’s leadership to make good decisions.
 
 cd$social[cd$social == "Very liberal"] <- 1
 cd$social[cd$social == "Liberal"] <- 2
@@ -292,6 +297,7 @@ cd$w_variations<- 100-cd$nw_variations
 #Creating the income Shares in general for NW 
 cd$incomeShare_NW<- (cd$nw_variations)/cd$nonwhite_share
 round(cd$incomeShare_NW, digits=2)
+
 #Creating the income shares in general for W
 cd$incomeShare_W<- (cd$w_variations)/cd$white_share
 round(cd$incomeShare_W,digits=2)
@@ -303,287 +309,566 @@ cd$team_work<-as.numeric(cd$team_work)
 cd$work_in_team<-as.numeric(cd$work_in_team)
 #just participants
 X = cd[!duplicated(cd[ , c("subject")]),] #we have 97 final participants
-
-```
-```{r, warning=FALSE, results=TRUE, messages = FALSE, include = FALSE}
-
-#create factors 
-#cd$incomeShare_NW = as.factor(cd$incomeShare_NW)
-#cd$incomeShare_W = as.factor(cd$incomeShare_W)
-
-#cd$incomeShare_NW = factor(cd$incomeShare_NW,levels=rev(levels(cd$incomeShare_NW)))
-
-#cd$incomeShare_W = factor(cd$incomeShare_W, levels=rev(levels(cd$incomeShare_W)))
-
-#cd$edu = as.numeric(cd$edu)
-
 ```
 ```{r, warning=FALSE, results=TRUE, messages = FALSE, include = TRUE}
 ## summary:cond: white-more; nwmore; equal but for each variation (5)
 cd$incomeShare_trial<-cd$nw_variations/cd$nNonWhiteTrial
+cd$incomeShare_trial_w<-cd$w_variations/cd$nWhiteTrial
 ```
 # Main Effect Analysis 
-## fairness
+## fairness nw
 ```{r, results=FALSE, warning=FALSE, message=FALSE}
 m1 <- lme4::glmer(fairness ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
 ```
 ```{r, echo=FALSE}
 summary(m1)
 ```
-## team work
+### plot
+```{r}
+fairness_plot <- interactions::interact_plot(m1, pred = nonwhite_share, modx = incomeShare_trial, x.label = "Non white Ratio", y.label = "0 = fair, 1 = unfair", legend.main = "income share PP") + ylim(c(0,1))
+
+fairness_plot_maineffect <- annotate_figure(fairness_plot,
+               top = text_grob("Fairness by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = fairness_plot_maineffect, width = 8, height = 6, filename = "fairness_plot_maineffect.jpg")
+```
+```{r}
+knitr::include_graphics("fairness_plot_maineffect.jpg")
+```
+
+## team work nw
 ```{r, results=FALSE, warning=FALSE, message=FALSE}
 m2 <- lme4::glmer(team_work ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
 ```
 ```{r, echo=FALSE}
 summary(m2)
 ```
-## work in team
+## work in team nw
 ```{r, results=FALSE, warning=FALSE, message=FALSE}
 m3 <- lme4::glmer(work_in_team ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
 ```
 ```{r, echo=FALSE}
 summary(m3)
 ```
-## distrust
+### plot
+```{r}
+work_in_team_plot <- interactions::interact_plot(m3, pred = nonwhite_share, modx = incomeShare_trial, x.label = "Non white Ratio", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "income share PP") + ylim(c(0,1))
+
+work_in_team_plot_maineffect_nw <- annotate_figure(work_in_team_plot,
+               top = text_grob("Work in Team by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = work_in_team_plot_maineffect_nw, width = 8, height = 6, filename = "work_in_team_maineffect_nw.jpg")
+```
+```{r}
+knitr::include_graphics("work_in_team_maineffect_nw.jpg")
+```
+
+## distrust nw
 ```{r, results=FALSE, warning=FALSE, message=FALSE}
 m4 <- lme4::glmer(distrust ~ nonwhite_share*incomeShare_trial + (1 | X), cd, family = binomial(link = "logit"))
 ```
 ```{r, echo=FALSE}
 summary(m4)
 ```
-## Table with Results
-```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+### plot
+```{r}
+distrust_plot_nw <- interactions::interact_plot(m4, pred = nonwhite_share, modx = incomeShare_trial, x.label = "Non white Ratio", y.label = "0 = trust , 1 = distrust", legend.main = "income share PP") + ylim(c(0,1))
 
-htmlreg(l = list(m1, m2, m3, m4), center = TRUE, stars = c(0.001, 0.01, 0.05),
-        bold = 0.05, caption = 'M1 = Fairness (DV), M2 = Team Work (DV), M3 = Want to work in team (DV), M4 = Distrust (DV)',
-        caption.above = TRUE, digits = 3, leading.zero = F)
+distrust_maineffect_nw <- annotate_figure(distrust_plot_nw,
+               top = text_grob("Trust by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = distrust_maineffect_nw, width = 10, height = 8, filename = "distrust_maineffect_nw.jpg")
+```
+```{r}
+knitr::include_graphics("distrust_maineffect_nw.jpg")
 ```
 
-# Main Effects Analysis with control variables
-## fairness
+## fairness w
 ```{r, results=FALSE, warning=FALSE, message=FALSE}
-
-m5 <- lme4::glmer(fairness ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+m5 <- lme4::glmer(fairness ~ white_share*incomeShare_trial_w + (1 | X), cd, family = binomial(link = "logit"))
 ```
 ```{r, echo=FALSE}
 summary(m5)
 ```
 ### plot
-```{r, include=FALSE}
-fairness_maineffect <- interactions::interact_plot(m5, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "majority held by...") + ylim(c(0,1))
+```{r}
+fairness_plot_w <- interactions::interact_plot(m5, pred = white_share, modx = incomeShare_trial_w, x.label = "White Ratio", y.label = "0 = fair, 1 = unfair", legend.main = "income share PP") + ylim(c(0,1))
 
-fairness_maineffect_annotated <- annotate_figure(fairness_maineffect,
+fairness_plot_maineffect_w <- annotate_figure(fairness_plot_w,
                top = text_grob("Fairness by Condition", color = "black", face = "bold", size = 14)) 
-ggsave(plot = fairness_maineffect_annotated, width = 8, height = 6, filename = "fairness_maineffect.jpg")
+ggsave(plot = fairness_plot_maineffect_w, width = 8, height = 6, filename = "fairness_maineffect_w.jpg")
 ```
 ```{r}
-knitr::include_graphics("fairness_maineffect.jpg")
+knitr::include_graphics("fairness_maineffect_w.jpg")
 ```
 
-## work in team
+## team work w
 ```{r, results=FALSE, warning=FALSE, message=FALSE}
-
-m6 <- lme4::glmer(work_in_team ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+m6 <- lme4::glmer(team_work ~ white_share*incomeShare_trial_w + (1 | X), cd, family = binomial(link = "logit"))
 ```
 ```{r, echo=FALSE}
 summary(m6)
 ```
-### plot
-```{r}
-work_in_team_maineffect <- interactions::interact_plot(m6, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "majority held by...") + ylim(c(0,1))
 
-work_in_team_maineffect_annotated <- annotate_figure(work_in_team_maineffect,
-               top = text_grob("Work in Team by Condition", color = "black", face = "bold", size = 14)) 
-ggsave(plot = work_in_team_maineffect_annotated, width = 8, height = 6, filename = "work_in_team_maineffect.jpg")
-
-```
-```{r}
-knitr::include_graphics("work_in_team_maineffect.jpg")
-```
-
-## team work
+## work in team w
 ```{r, results=FALSE, warning=FALSE, message=FALSE}
-
-m7 <- lme4::glmer(team_work ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+m7 <- lme4::glmer(work_in_team ~ white_share*incomeShare_trial_w + (1 | X), cd, family = binomial(link = "logit"))
 ```
 ```{r, echo=FALSE}
 summary(m7)
 ```
 ### plot
 ```{r}
-team_work_maineffect <- interactions::interact_plot(m7, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "majority held by...") + ylim(c(0,1))
+work_in_team_plot_w <- interactions::interact_plot(m7, pred = white_share, modx = incomeShare_trial_w, x.label = "White Ratio", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "income share PP") + ylim(c(0,1))
 
-team_work_maineffect_annotated <- annotate_figure(team_work_maineffect,
-               top = text_grob("Team work by Condition", color = "black", face = "bold", size = 14)) 
-ggsave(plot = work_in_team_maineffect_annotated, width = 8, height = 6, filename = "team_work_maineffect.jpg")
-
+work_in_team_plot_maineffect_w <- annotate_figure(work_in_team_plot_w,
+               top = text_grob("Work in Team by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = work_in_team_plot_maineffect_w, width = 8, height = 6, filename = "work_in_team_maineffect_w.jpg")
 ```
 ```{r}
-knitr::include_graphics("team_work_maineffect.jpg")
+knitr::include_graphics("work_in_team_maineffect_w.jpg")
 ```
 
-## distrust of the organization’s leadership
+## distrust w
 ```{r, results=FALSE, warning=FALSE, message=FALSE}
-
-m8 <- lme4::glmer(distrust ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+m8 <- lme4::glmer(distrust ~ white_share*incomeShare_trial_w + (1 | X), cd, family = binomial(link = "logit"))
 ```
 ```{r, echo=FALSE}
 summary(m8)
 ```
+
 ### plot
 ```{r}
-distrust_maineffect <- interactions::interact_plot(m8, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "majority held by...") + ylim(c(0,1))
+distrust_plot_w <- interactions::interact_plot(m8, pred = white_share, modx = incomeShare_trial_w, x.label = "White Ratio", y.label = "0 = trust , 1 = distrust", legend.main = "income share PP") + ylim(c(0,1))
 
-distrust_maineffect_annotated <- annotate_figure(distrust_maineffect,
-               top = text_grob("Team work by Condition", color = "black", face = "bold", size = 14)) 
-ggsave(plot = distrust_maineffect_annotated, width = 8, height = 6, filename = "distrust_maineffect.jpg")
+distrust_maineffect_w <- annotate_figure(distrust_plot_w,
+               top = text_grob("Trust by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = distrust_maineffect_w, width = 8, height = 10, filename = "distrust_maineffect_w.jpg")
+```
+```{r}
+knitr::include_graphics("distrust_maineffect_w.jpg")
+```
+
+## Table with Results
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+
+htmlreg(l = list(m1, m2, m3, m4, m5, m6, m7, m8), center = TRUE, stars = c(0.001, 0.01, 0.05),
+        bold = 0.05, caption = 'M1 = Fairness NW (DV), M2 = Team Work NW (DV), M3 = Want to work in team NW (DV), M4 = Distrust NW (DV), M5 = Fairness W, M6 = Teamwork W, M7 = Want to work in team W, M8 = Distrust W',
+        caption.above = TRUE, digits = 3, leading.zero = F)
+```
+```{r}
+fairness_nw_w <- ggarrange(fairness_plot_maineffect_w,fairness_plot_maineffect, ncol = 2, nrow = 2, common.legend = T)
+
+ggsave(plot = fairness_nw_w, width = 10, height = 10, filename = "fairness_nw_w.jpg")
+```
+```{r}
+knitr::include_graphics("fairness_nw_w.jpg")
+```
+```{r}
+want_to_work_in_team_nw_w <- ggarrange(work_in_team_plot_maineffect_w,work_in_team_plot_maineffect_nw, ncol = 2, nrow = 2, common.legend = T)
+
+ggsave(plot = want_to_work_in_team_nw_w, width = 10, height = 10, filename = "want_to_work_in_team_nw_w.jpg")
+```
+```{r}
+knitr::include_graphics("want_to_work_in_team_nw_w.jpg")
+```
+```{r}
+distrust_nw_w <- ggarrange(distrust_maineffect_w,distrust_maineffect_nw, ncol = 2, nrow = 2, common.legend = T)
+
+ggsave(plot = distrust_nw_w, width = 10, height = 10, filename = "distrust_nw_w.jpg")
+```
+```{r}
+knitr::include_graphics("distrust_nw_w.jpg")
+```
+
+
+# Main Effects Analysis with control variables
+## fairness nw
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m9 <- lme4::glmer(fairness ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m9)
+```
+### plot
+```{r, include=FALSE}
+fairness_maineffect <- interactions::interact_plot(m9, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by nonwhite employees",interval=FALSE, y.label = "0 = fair, 1 = unfair", legend.main = "income share PP") + ylim(c(0,1))
+
+fairness_maineffect_annotated <- annotate_figure(fairness_maineffect,
+               top = text_grob("Fairness by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = fairness_maineffect_annotated, width = 8, height = 6, filename = "fairness_maineffect_cov_nw.jpg")
+```
+```{r}
+knitr::include_graphics("fairness_maineffect_cov_nw.jpg")
+```
+
+## work in team nw
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m10 <- lme4::glmer(work_in_team ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m10)
+```
+### plot
+```{r}
+work_in_team_maineffect <- interactions::interact_plot(m10, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by non white employees", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "income share PP") + ylim(c(0,1))
+
+work_in_team_maineffect_annotated <- annotate_figure(work_in_team_maineffect,
+               top = text_grob("Work in Team by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = work_in_team_maineffect_annotated, width = 8, height = 6, filename = "work_in_team_cov_nw.jpg")
 
 ```
 ```{r}
-knitr::include_graphics("distrust_maineffect.jpg")
+knitr::include_graphics("work_in_team_cov_nw.jpg")
+```
+
+## team work nw
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m11 <- lme4::glmer(team_work ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m11)
+```
+### plot
+```{r}
+team_work_maineffect <- interactions::interact_plot(m11, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by non white employees", y.label = "0 = team work well, 1 = team work not well", legend.main = "income share PP") + ylim(c(0,1))
+
+team_work_maineffect_annotated <- annotate_figure(team_work_maineffect,
+               top = text_grob("Team work by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = work_in_team_maineffect_annotated, width = 8, height = 6, filename = "team_work_cov_nw.jpg")
+
+```
+```{r}
+knitr::include_graphics("team_work_cov_nw.jpg")
+```
+
+## trust of the organization’s leadership nw
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m12 <- lme4::glmer(distrust ~ nonwhite_share*incomeShare_trial + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m12)
+```
+### plot
+```{r}
+distrust_maineffect <- interactions::interact_plot(m12, pred = nonwhite_share, modx = incomeShare_trial, x.label = "income share held by non white employees", y.label = "0 = trust , 1 = distrust", legend.main = "income share PP") + ylim(c(0,1))
+
+distrust_maineffect_annotated <- annotate_figure(distrust_maineffect,
+               top = text_grob("Trust by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = distrust_maineffect_annotated, width = 8, height = 6, filename = "distrust_cov_nw.jpg")
+
+```
+```{r}
+knitr::include_graphics("distrust_cov_nw.jpg")
+```
+
+## fairness w
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m13 <- lme4::glmer(fairness ~ white_share*incomeShare_trial_w + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m13)
+```
+### plot
+```{r, include=FALSE}
+fairness_maineffect_cov <- interactions::interact_plot(m13, pred = white_share, modx = incomeShare_trial_w, x.label = "White Ratio",interval=FALSE, y.label = "0 = fair, 1 = unfair", legend.main = "income share PP") + ylim(c(0,1))
+
+fairness_maineffect_cov_w<- annotate_figure(fairness_maineffect_cov,
+               top = text_grob("Fairness by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = fairness_maineffect_cov_w, width = 8, height = 6, filename = "fairness_cov_w.jpg")
+```
+```{r}
+knitr::include_graphics("fairness_cov_w.jpg")
+```
+
+
+
+## work in team w
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m14 <- lme4::glmer(work_in_team ~ white_share*incomeShare_trial_w + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m14)
+```
+### plot
+```{r}
+work_in_team_maineffect_w <- interactions::interact_plot(m14, pred = white_share, modx = incomeShare_trial_w, x.label = "White Ratio", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "income share PP") + ylim(c(0,1))
+
+work_in_team_maineffect_annotated_w <- annotate_figure(work_in_team_maineffect_w,
+               top = text_grob("Work in Team by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = work_in_team_maineffect_annotated_w, width = 8, height = 6, filename = "work_in_team_cov_w.jpg")
+
+```
+```{r}
+knitr::include_graphics("work_in_team_cov_w.jpg")
+```
+
+## team work w
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m15 <- lme4::glmer(team_work ~ white_share*incomeShare_trial_w + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m15)
+```
+### plot
+```{r}
+team_work_maineffect_w <- interactions::interact_plot(m15, pred = white_share, modx = incomeShare_trial_w, x.label = "White Ratio", y.label = "0 = team work well, 1 = team work not well", legend.main = "income share PP") + ylim(c(0,1))
+
+team_work_maineffect_annotated_w <- annotate_figure(team_work_maineffect_w,
+               top = text_grob("Team work by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = work_in_team_maineffect_annotated_w, width = 8, height = 6, filename = "team_work_cov_w.jpg")
+
+```
+```{r}
+knitr::include_graphics("team_work_cov_w.jpg")
+```
+
+## trust of the organization’s leadership w
+```{r, results=FALSE, warning=FALSE, message=FALSE}
+
+m16 <- lme4::glmer(distrust ~ white_share*incomeShare_trial_w + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1 | X), cd, family = binomial(link = "logit"))
+```
+```{r, echo=FALSE}
+summary(m16)
+```
+### plot
+```{r}
+distrust_maineffect_w <- interactions::interact_plot(m16, pred = white_share, modx = incomeShare_trial_w, x.label = "White Ratio", y.label = "0 = trust , 1 = distrust", legend.main = "income share PP") + ylim(c(0,1))
+
+distrust_maineffect_annotated_w <- annotate_figure(distrust_maineffect_w,
+               top = text_grob("Trust by Condition", color = "black", face = "bold", size = 14)) 
+ggsave(plot = distrust_maineffect_annotated_w, width = 8, height = 6, filename = "distrust_cov_w.jpg")
+
+```
+```{r}
+knitr::include_graphics("distrust_cov_w.jpg")
 ```
 
 ## Table
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 
-htmlreg(l = list(m5, m6, m7, m8), center = TRUE, stars = c(0.001, 0.01, 0.05),
-        bold = 0.05, caption = 'M1 = Fairness (DV), M2 = Want to work in team (DV), M3 = Trust org (DV)',
+htmlreg(l = list(m9, m10, m11, m12, m13, m14, m15, m16), center = TRUE, stars = c(0.001, 0.01, 0.05),
+        bold = 0.05, caption = 'M9 = Fairness nw (DV), M10 = Want to work in team nw(DV), M11 = Trust org nw (DV), M12 = Distrust nw (DV), M13 = Fairness w (DV), M14 = Want to work in team w (DV), M15 = Trust org  w(DV), M16 = Distrust w (DV)',
         caption.above = TRUE, digits = 3, leading.zero = F)
 ```
 
+
 # Moderator Analysis: Political Orientation
-## fairness
+## fairness nw
 ```{r}
 
 summary(m1_1 <- lme4::glmer(fairness ~ PoliticalOrientation*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot1_1 <- interactions::interact_plot(m1_1, pred = incomeShare_trial, modx = PoliticalOrientation, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "political orientation") + ylim(c(0,1))
+plot1_1 <- interact_plot(model = m1_1, pred = nonwhite_share, modx = incomeShare_trial, mod2 = PoliticalOrientation, x.label = "Non white Ratio", y.label = "0 = fair, 1 = unfair", legend.main = "Political Orientation") + ylim(c(0,1))
+
+ggsave(plot = plot1_1, width = 10, height = 8, filename = "Pol_Fairness_nw.jpg")
 ```
 
-## want to work in team
+## want to work in team nw
 ```{r}
 summary(m2_1 <- lme4::glmer(work_in_team ~ PoliticalOrientation*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot2_1 <- interactions::interact_plot(m2_1, pred = incomeShare_trial, modx = PoliticalOrientation, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "political orientation") + ylim(c(0,1))
+plot2_1 <- interact_plot(model = m2_1, pred = nonwhite_share, modx = incomeShare_trial, mod2 = PoliticalOrientation, x.label = "Non white Ratio", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "Political Orientation") + ylim(c(0,1))
+
+ggsave(plot = plot2_1, width = 10, height = 8, filename = "Pol_Want_to_work_nw.jpg")
 ```
 
-## team work
+## team work nw
 ```{r}
 summary(m3_1 <- lme4::glmer(team_work ~ PoliticalOrientation*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot3_1 <- interactions::interact_plot(m3_1, pred = incomeShare_trial, modx = PoliticalOrientation, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "political orientation") + ylim(c(0,1))
+plot3_1 <- interact_plot(model = m3_1, pred = nonwhite_share, modx = incomeShare_trial, mod2 = PoliticalOrientation, x.label = "Non white Ratio", y.label = "0 = team work well, 1 = team work not well", legend.main = "Political Orientation") + ylim(c(0,1))
+
+ggsave(plot = plot3_1, width = 10, height = 8, filename = "Pol_team_work_nw.jpg")
 ```
 
-
-## distrust
+## distrust nw
 ```{r}
 summary(m4_1 <- lme4::glmer(distrust ~ PoliticalOrientation*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot4_1 <- interactions::interact_plot(m4_1, pred = incomeShare_trial, modx = PoliticalOrientation, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "political orientation") + ylim(c(0,1))
+plot4_1 <- interact_plot(model = m4_1, pred = nonwhite_share, modx = incomeShare_trial, mod2 = PoliticalOrientation, x.label = "Non white Ratio", y.label = "0 = distrust , 1 = no distrust", legend.main = "Political Orientation") + ylim(c(0,1))
+
+ggsave(plot = plot3_1, width = 10, height = 8, filename = "Pol_trust_nw.jpg")
 ```
 ``` {r}
 interaction_polorientation <- ggarrange(plot1_1, plot2_1, plot3_1, plot4_1, ncol = 2, nrow = 2, common.legend = T)
 
-ggsave(plot = interaction_polorientation, width = 10, height = 8, filename = "polorientation.jpg")
+ggsave(plot = interaction_polorientation, width = 12, height = 8, filename = "polorientation.jpg")
 knitr::include_graphics("polorientation.jpg")
+```
+## fairness w
+```{r}
+
+summary(m1_2 <- lme4::glmer(fairness ~ PoliticalOrientation*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot1_2 <- interact_plot(model = m1_2, pred = white_share, modx = incomeShare_trial_w, mod2 = PoliticalOrientation, x.label = "White Ratio", y.label = "0 = fair, 1 = unfair", legend.main = "Political Orientation") + ylim(c(0,1))
+
+ggsave(plot = plot1_2, width = 10, height = 8, filename = "Pol_Fairness_w.jpg")
+```
+
+## want to work in team w
+```{r}
+summary(m2_2 <- lme4::glmer(work_in_team ~ PoliticalOrientation*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot2_2 <- interact_plot(model = m2_2, pred = white_share, modx = incomeShare_trial_w, mod2 = PoliticalOrientation, x.label = "White Ratio", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "Political Orientation") + ylim(c(0,1))
+
+ggsave(plot = plot2_2, width = 10, height = 8, filename = "Pol_Want_to_work_w.jpg")
+```
+
+## team work w
+```{r}
+summary(m3_2 <- lme4::glmer(team_work ~ PoliticalOrientation*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot3_2 <- interact_plot(model = m3_2, pred = white_share, modx = incomeShare_trial_w, mod2 = PoliticalOrientation, x.label = "White Ratio", y.label = "0 = team work well, 1 = team work not well", legend.main = "Political Orientation") + ylim(c(0,1))
+
+ggsave(plot = plot3_2, width = 10, height = 8, filename = "Pol_team_work_w.jpg")
+```
+
+## distrust w
+```{r}
+summary(m4_2 <- lme4::glmer(distrust ~ PoliticalOrientation*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot4_2 <- interact_plot(model = m4_2, pred = white_share, modx = incomeShare_trial_w, mod2 = PoliticalOrientation, x.label = "White Ratio", y.label = "0 = distrust , 1 = no distrust", legend.main = "Political Orientation") + ylim(c(0,1))
+
+ggsave(plot = plot4_2, width = 10, height = 8, filename = "Pol_trust_w.jpg")
+```
+``` {r}
+interaction_polorientation <- ggarrange(plot1_2, plot2_2, plot3_2, plot4_2, ncol = 2, nrow = 2, common.legend = T)
+
+ggsave(plot = interaction_polorientation, width = 12, height = 8, filename = "polorientation_w.jpg")
+knitr::include_graphics("polorientation_w.jpg")
 ```
 
 
 # Moderator Analysis: SDO
-## fairness
+## fairness nw
 ```{r}
 
 summary(m1_2 <- lme4::glmer(fairness ~ SDO *nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot1_2 <- interactions::interact_plot(m1_2, pred = incomeShare_trial, modx = SDO, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "SDO") + ylim(c(0,1))
+plot1_2 <- interact_plot(model = m1_2, pred = nonwhite_share, modx = incomeShare_trial, mod2 = SDO, x.label = "Non white Ratio", y.label = "0 = fair, 1 = unfair", legend.main = "SDO") + ylim(c(0,1))
+
+ggsave(plot = plot1_2, width = 10, height = 8, filename = "SDO_Fairness_nw.jpg")
 ```
 
-## want to work in team
+## want to work in team nw
 ```{r}
 summary(m2_2 <- lme4::glmer(work_in_team ~ SDO*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot2_2 <- interactions::interact_plot(m2_2, pred = incomeShare_trial, modx = SDO, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "SDO") + ylim(c(0,1))
+plot2_2 <- interact_plot(model = m2_2, pred = nonwhite_share, modx = incomeShare_trial, mod2 = SDO, x.label = "Non white Ratio", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "SDO") + ylim(c(0,1))
+
+ggsave(plot = plot2_2, width = 10, height = 8, filename = "SDO_Work_in_team_nw.jpg")
 ```
 
-## team work
+## team work nw
 ```{r}
 summary(m3_2 <- lme4::glmer(team_work ~ SDO*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot3_2 <- interactions::interact_plot(m3_2, pred = incomeShare_trial, modx = SDO, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "SDO") + ylim(c(0,1))
+plot3_2 <- interact_plot(model = m3_2, pred = nonwhite_share, modx = incomeShare_trial, mod2 = SDO, x.label = "Non white Ratio", y.label = "0 = team work well, 1 = team work not well", legend.main = "SDO") + ylim(c(0,1))
+
+ggsave(plot = plot3_2, width = 10, height = 8, filename = "SDO_Team_work_nw.jpg")
 ```
 
 
-## distrust
+## trust in leadership nw
 ```{r}
 summary(m4_2 <- lme4::glmer(distrust ~ SDO*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot4_2 <- interactions::interact_plot(m4_2, pred = incomeShare_trial, modx = SDO, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "SDO") + ylim(c(0,1))
+plot4_2 <- interact_plot(model = m4_2, pred = nonwhite_share, modx = incomeShare_trial, mod2 = SDO, x.label = "Non white Ratio", y.label = "0 = Trust , 1 = distrust", legend.main = "SDO") + ylim(c(0,1))
+
+ggsave(plot = plot4_2, width = 10, height = 8, filename = "SDO_Trust_nw.jpg")
 ```
 ``` {r}
 interaction_SDO <- ggarrange(plot1_2, plot2_2, plot3_2, plot4_2, ncol = 2, nrow = 2, common.legend = T)
 
-ggsave(plot = interaction_SDO, width = 10, height = 8, filename = "SDO.jpg")
+ggsave(plot = interaction_SDO, width = 12, height = 8, filename = "SDO.jpg")
 knitr::include_graphics("SDO.jpg")
 ```
+## Table
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 
-
-# Moderator Analysis: BJW
-## fairness
-```{r}
-
-summary(m1_3 <- lme4::glmer(fairness ~ BJW *nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
-
-plot1_3 <- interactions::interact_plot(m1_3, pred = incomeShare_trial, modx = BJW, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "BJW") + ylim(c(0,1))
+htmlreg(l = list(m1_2, m2_2, m3_2, m4_2), center = TRUE, stars = c(0.001, 0.01, 0.05),
+        bold = 0.05, caption = 'M1_2 = Fairness nw (DV), M2_2 = Want to work in team nw(DV), M3_2 = Team work nw (DV), M4_2 = Distrust nw (DV)',
+        caption.above = TRUE, digits = 3, leading.zero = F)
 ```
 
-## want to work in team
+## fairness w
 ```{r}
-summary(m2_3 <- lme4::glmer(work_in_team ~ BJW*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot2_3 <- interactions::interact_plot(m2_3, pred = incomeShare_trial, modx = BJW, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "BJW") + ylim(c(0,1))
+summary(m1_22 <- lme4::glmer(fairness ~ SDO *white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot1_22 <- interact_plot(model = m1_22, pred = white_share, modx = incomeShare_trial_w, mod2 = SDO, x.label = "White Ratio", y.label = "0 = fair, 1 = unfair", legend.main = "SDO") + ylim(c(0,1))
+
+ggsave(plot = plot1_22, width = 10, height = 8, filename = "SDO_Fairness_w.jpg")
 ```
 
-## team work
+## want to work in team w
 ```{r}
-summary(m3_3 <- lme4::glmer(team_work ~ BJW*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+summary(m2_22 <- lme4::glmer(work_in_team ~ SDO*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
 
-plot3_3 <- interactions::interact_plot(m3_3, pred = incomeShare_trial, modx = BJW, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "BJW") + ylim(c(0,1))
+plot2_22 <- interact_plot(model = m2_22, pred = white_share, modx = incomeShare_trial_w, mod2 = SDO, x.label = "White Ratio", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "SDO") + ylim(c(0,1))
+
+ggsave(plot = plot2_22, width = 10, height = 8, filename = "SDO_Work_in_team_w.jpg")
 ```
 
-
-## distrust
+## team work w
 ```{r}
-summary(m4_3 <- lme4::glmer(distrust ~ BJW*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+summary(m3_22 <- lme4::glmer(team_work ~ SDO*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
 
-plot4_3 <- interactions::interact_plot(m4_3, pred = incomeShare_trial, modx = BJW, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "BJW") + ylim(c(0,1))
+plot3_22 <- interact_plot(model = m3_22, pred = white_share, modx = incomeShare_trial_w, mod2 = SDO, x.label = "White Ratio", y.label = "0 = team work well, 1 = team work not well", legend.main = "SDO") + ylim(c(0,1))
+
+ggsave(plot = plot3_22, width = 10, height = 8, filename = "SDO_Team_work_w.jpg")
+```
+
+## trust in leadership w
+```{r}
+summary(m4_22 <- lme4::glmer(distrust ~ SDO*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot4_22 <- interact_plot(model = m4_22, pred = white_share, modx = incomeShare_trial_w, mod2 = SDO, x.label = "White Ratio", y.label = "0 = Trust , 1 = distrust", legend.main = "SDO") + ylim(c(0,1))
+
+ggsave(plot = plot4_22, width = 10, height = 8, filename = "SDO_distrust_w.jpg")
 ```
 ``` {r}
-interaction_BJW <- ggarrange(plot1_3, plot2_3, plot3_3, plot4_3, ncol = 2, nrow = 2, common.legend = T)
+interaction_SDO <- ggarrange(plot1_22, plot2_22, plot3_22, plot4_22, ncol = 2, nrow = 2, common.legend = T)
 
-ggsave(plot = interaction_BJW, width = 10, height = 8, filename = "BJW.jpg")
-knitr::include_graphics("BJW.jpg")
+ggsave(plot = interaction_SDO, width = 12, height = 8, filename = "SDO_w.jpg")
+knitr::include_graphics("SDO_w.jpg")
 ```
+## Table nw
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+
+htmlreg(l = list(m1_2, m2_2, m3_2, m4_2), center = TRUE, stars = c(0.001, 0.01, 0.05),
+        bold = 0.05, caption = 'M1_2 = Fairness nw (DV), M2_2 = Want to work in team nw(DV), M3_2 = Team work nw (DV), M4_2 = Distrust nw (DV)',
+        caption.above = TRUE, digits = 3, leading.zero = F)
+```
+
 
 # Moderator Analysis: Race
 ## fairness
 ```{r}
-summary(m1_4 <- lme4::glmer(fairness ~ ethnic *nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
+summary(m1_44 <- lme4::glmer(fairness ~ ethnic *nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot1_4 <- interactions::interact_plot(m1_4, pred = incomeShare_trial, modx = ethnic, x.label = "income share held by majority", y.label = "0 = fair, 1 = unfair", legend.main = "ethnic") + ylim(c(0,1))
+plot1_44 <- interactions::interact_plot(m1_44, pred = incomeShare_trial, modx = ethnic, x.label = "Non white Ratio", y.label = "0 = fair, 1 = unfair", legend.main = "own ethnicity") + ylim(c(0,1), (legend = "0 = White, 1 = Non white"))
+
+ggsave(plot = plot1_44, width = 10, height = 8, filename = "Race_fairness_nw.jpg")
 ```
 
 ## want to work in team
 ```{r}
 summary(m2_4 <- lme4::glmer(work_in_team ~ ethnic*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot2_4 <- interactions::interact_plot(m2_4, pred = incomeShare_trial, modx = ethnic, x.label = "income share held by majority", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "ethnic") + ylim(c(0,1))
+plot2_4 <- interactions::interact_plot(m2_4, pred = incomeShare_trial, modx = ethnic, x.label = "Non white Ratio", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "ethnic") + ylim(c(0,1),(legend = "0 = White, 1 = Non white"))
 ```
 
 ## team work
 ```{r}
 summary(m3_4 <- lme4::glmer(team_work ~ ethnic*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot3_4 <- interactions::interact_plot(m3_4, pred = incomeShare_trial, modx = ethnic, x.label = "income share held by majority", y.label = "0 = team work well, 1 = team work not well", legend.main = "ethnic") + ylim(c(0,1))
+plot3_4 <- interactions::interact_plot(m3_4, pred = incomeShare_trial, modx = ethnic, x.label = "Non white Ratio", y.label = "0 = team work well, 1 = team work not well", legend.main = "ethnic") + ylim(c(0,1), (legend = "0 = White, 1 = Non white"))
 ```
 
 
@@ -591,11 +876,51 @@ plot3_4 <- interactions::interact_plot(m3_4, pred = incomeShare_trial, modx = et
 ```{r}
 summary(m4_4 <- lme4::glmer(distrust ~ ethnic*nonwhite_share*incomeShare_trial +(1 | X), cd, family = binomial(link = "logit")))
 
-plot4_4 <- interactions::interact_plot(m4_4, pred = incomeShare_trial, modx = ethnic, x.label = "income share held by majority", y.label = "0 = distrust , 1 = no distrust", legend.main = "ethnic") + ylim(c(0,1))
+plot4_4 <- interactions::interact_plot(m4_4, pred = incomeShare_trial, modx = ethnic, x.label = "Non white Ratio", y.label = "0 = distrust , 1 = no distrust", legend.main = "ethnic") + ylim(c(0,1), (legend = "0 = White, 1 = Non white"))
 ```
 ``` {r}
-interaction_ethnic <- ggarrange(plot1_4, plot2_4, plot3_4, plot4_4, ncol = 2, nrow = 2, common.legend = T)
+interaction_ethnic <- ggarrange(plot1_44, plot2_4, plot3_4, plot4_4, ncol = 2, nrow = 2, common.legend = T)
 
 ggsave(plot = interaction_ethnic, width = 10, height = 8, filename = "ethnic.jpg")
 knitr::include_graphics("ethnic.jpg")
 ```
+## fairness w
+```{r}
+summary(m1_444 <- lme4::glmer(fairness ~ ethnic *white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot1_444 <- interactions::interact_plot(m1_444, pred = incomeShare_trial_w, modx = ethnic, x.label = "White Ratio", y.label = "0 = fair, 1 = unfair", legend.main = "own ethnicity") + ylim(c(0,1), (legend = "0 = White, 1 = Non white"))
+
+ggsave(plot = plot1_444, width = 10, height = 8, filename = "Race_fairness_w.jpg")
+```
+
+## want to work in team
+```{r}
+summary(m2_44 <- lme4::glmer(work_in_team ~ ethnic*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot2_44 <- interactions::interact_plot(m2_44, pred = incomeShare_trial_w, modx = ethnic, x.label = "White Ratio", y.label = "0 = want to work in team, 1 = do not want to work in team", legend.main = "ethnic") + ylim(c(0,1),(legend = "0 = White, 1 = Non white"))
+```
+
+## team work
+```{r}
+summary(m3_44 <- lme4::glmer(team_work ~ ethnic*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot3_44 <- interactions::interact_plot(m3_44, pred = incomeShare_trial_w, modx = ethnic, x.label = "White Ratio", y.label = "0 = team work well, 1 = team work not well", legend.main = "ethnic") + ylim(c(0,1), (legend = "0 = White, 1 = Non white"))
+```
+
+
+## distrust
+```{r}
+summary(m4_44 <- lme4::glmer(distrust ~ ethnic*white_share*incomeShare_trial_w +(1 | X), cd, family = binomial(link = "logit")))
+
+plot4_44 <- interactions::interact_plot(m4_44, pred = incomeShare_trial_w, modx = ethnic, x.label = "White Ratio", y.label = "0 = distrust , 1 = no distrust", legend.main = "ethnic") + ylim(c(0,1), (legend = "0 = White, 1 = Non white"))
+```
+``` {r}
+interaction_ethnic4 <- ggarrange(plot1_444, plot2_44, plot3_44, plot4_44, ncol = 2, nrow = 2, common.legend = T)
+
+ggsave(plot = interaction_ethnic4, width = 10, height = 8, filename = "ethnic_w.jpg")
+knitr::include_graphics("ethnic_w.jpg")
+```
+``` {r}
+cd$gender
+```
+
