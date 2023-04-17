@@ -507,3 +507,25 @@ h<-htmlreg(l = list(model_17, model_18, model_19, model_20), center = TRUE, star
 
 htmltools::HTML(h)
 ```
+
+# Moderator Analysis: BJW
+```{r, error=FALSE, warning = FALSE, message = FALSE, results='hide'}
+
+model_21<-lmer(fairness~nwhitefemale + whitemen + nwhitemen+ whitefemale+BJW + nwhitefemale:BJW + whitemen:BJW + nwhitemen:BJW + whitefemale:BJW + (1 + BJW|subject), data = data2)
+summary(model_21)
+
+model_22<-lmer(team_work~nwhitefemale + whitemen + nwhitemen+ whitefemale+BJW + nwhitefemale:BJW + whitemen:BJW + nwhitemen:BJW + whitefemale:BJW + (1 + BJW|subject), data = data2)
+summary(model_22)
+
+model_23<-lmer(work_in_team~nwhitefemale + whitemen + nwhitemen+ whitefemale+BJW + nwhitefemale:BJW + whitemen:BJW + nwhitemen:BJW + whitefemale:BJW + (1 + BJW|subject), data = data2)
+summary(model_23)
+
+model_24<-lmer(distrust~nwhitefemale + whitemen + nwhitemen+ whitefemale+BJW + nwhitefemale:BJW + whitemen:BJW + nwhitemen:BJW + whitefemale:BJW + (1 + BJW|subject), data = data2)
+summary(model_24)
+
+```
+```{r}
+h<-htmlreg(l = list(model_21, model_22, model_23, model_24), center = TRUE, stars = c(0.001, 0.01, 0.05), bold = 0.05, caption = 'M1 = Fairness NW (DV), M2 = Team Work NW (DV), M3 = Want to work in team NW (DV), M4 = Distrust NW (DV)', caption.above = TRUE, digits = 3, leading.zero = F)
+
+htmltools::HTML(h)
+```
