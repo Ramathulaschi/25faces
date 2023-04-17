@@ -1,1 +1,509 @@
+---
+title: "Thesis Analysis"
+author: "RS"
+date: "2023-04-17"
+output:
+  html_document:
+    theme: flatly
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+---
 
+The objective of this R markdown document is to carry out multiple tasks such as uploading the JSON files, data cleaning, variable renaming, and conducting the analysis.
+
+# Legend
+```{r, error=FALSE, warning = FALSE, message = FALSE}
+# 1. rt.x: shows the time that they spend on each org.page in milliseconds
+
+# 2. trial index: In total we have 14 trials the participants go through during the questionnaire. 
+
+# 3. trial condition: 0-4 with 4 being most equal in female and non-whites (10 employees)
+
+# 4. nNonWhiteTrial: absolute number of non-White employees in this trial condition
+
+# 5. nWhiteTrial: absolute number of White employees in this trial condition
+
+# 6. nNonWhiteFemaleTrial: absolute number of non-White female employees in this trial condition
+
+# 7. nNonWhiteMaleTrial: absolute number of non-White male employees in this trial condition
+
+# 8. nWhiteFemaleTrial: absolute number of White female employees in this trial condition
+
+# 9. nWhiteMaleTrial: absolute number of White male employees in this trial condition
+
+# 10. DV: fairness, teamwork, work in team, distrust in organization
+
+```
+
+# Data Cleaning 
+```{r, error=FALSE, warning = FALSE, message = FALSE}
+######################### loading packages #########################
+
+library(jsonlite)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)  
+library(ggforce)
+library(sjPlot)
+library(lme4)
+library(lmerTest)
+library(interactions)
+library(ggpubr)
+library(texreg)
+library(reghelper)
+library(tidyr)
+
+
+######################## uploading JSON files #######################
+
+# uploading every json file and creating one big file 
+setwd("C:/Users/ramat/Desktop/data_2023")
+
+# read all the files with jason ending
+filenames <- list.files(pattern="*.json", recursive = T)
+files <- lapply (filenames, fromJSON)
+isCompleted <- lapply(files, nrow)
+
+# we have 14 trials in total
+completedData <- files[isCompleted == 14 ]
+
+# every trial is in all_data combined
+all_data <- do.call("bind_rows", completedData)
+raw_data <- all_data
+
+
+####################### correcting duplicates #######################
+
+# due to duplicates in the data selecting 
+values_subject<-names(table(all_data$subject)) #extract labels from part
+
+Data_filter<-c() #empty object
+
+for (i in c(1:length(values_subject)))
+{
+ data_sub<-all_data[all_data$subject==values_subject[i],] #subset data
+ data_sub<-data_sub[c(1:14),]  #delete everything but the first 14 trials
+ Data_filter[[i]]<-data_sub
+}
+
+raw_data<-do.call(rbind,Data_filter )  #merge again
+
+
+######################## combining 14 trials ########################
+
+# trial index 0 = attention check
+atten_trial <- 0
+
+atten_data <- raw_data[raw_data$trial_index == atten_trial, ]
+atten_data <- atten_data %>% unnest(response) %>% unnest()
+names(atten_data)[names(atten_data) == "response"] <- "attention_check"
+
+#trial index 1 = prolific ID
+prolific_trial <- 1
+prolific_data <- raw_data[raw_data$trial_index == prolific_trial, ]
+prolific_data <- prolific_data %>% unnest(response)
+names(prolific_data)[names(prolific_data) == "response"] <- "prolific_id"
+
+#trial index 2 = trial consent 
+#trial index 3 = trial 
+#trial index 4 = continue after trial
+
+#trial index 5-9 = organizations
+org_trials <- c(5,6,7,8,9)
+org_data <- raw_data[raw_data$trial_index %in% org_trials, ]
+org_data <- org_data %>% unnest(response)  
+org_data <- org_data %>% pivot_wider(names_from = name, values_from = value) %>% unnest()
+
+#trial index 10 = Moderator SDO and belief in justice world
+moderator_trials <- c(10)
+mod_data <- raw_data[raw_data$trial_index %in% moderator_trials, ]
+mod_data <- mod_data %>% unnest(response) %>% pivot_wider(names_from = name, values_from = value) %>% unnest()
+
+#trial index 12 = follow up trial
+followup_trials <- c(12)
+
+followup_data <- raw_data[raw_data$trial_index %in% followup_trials, ]
+followup_data <- followup_data %>% unnest(response) %>% unnest()
+names(followup_data)[names(followup_data) == "response"] <- "followup_response"
+
+#trial index 11 = demographics information
+demographics_trials <- c(11)
+demo_data <- raw_data[raw_data$trial_index %in% demographics_trials, ]
+demo_data <- demo_data %>% unnest(response)
+
+demo_data_wo_ethnic <- demo_data[demo_data$name != "ethnic[]", ]  %>% pivot_wider(names_from = name, values_from = value)
+demo_data_ethnic <- demo_data[demo_data$name == "ethnic[]", ]
+demo_data_ethnic <- demo_data_ethnic %>% mutate(ethnic = c( value))
+demo_data <- inner_join(demo_data_ethnic[, c("rt", "subject", "ethnic")], demo_data_wo_ethnic, by="subject") %>% unique() %>% unnest()
+
+
+############# removing mistake due to double responses ##############
+demo_data<-demo_data[-c(18,35,57,58,59,60,61,71,80,81,86,89,137,153,172,179,181,221),]
+
+
+###################### Socio demographic data #######################
+
+demo_cols <- c("ethnic", "age", "children", "economic", "edu", "employment", "gender", "gender_description", "income", "ladder", "marital", "social")
+
+
+############### Join all the variables into one excel ###############
+
+data <- inner_join(org_data, mod_data[, c("rt", "subject", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "B1", "B2", "B3", "B4", "B5", "B6")], by = "subject") 
+
+data <- inner_join(data, demo_data[, c("subject", demo_cols)], by = "subject") 
+data <- inner_join(data, followup_data[, c("subject", "followup_response")], by = "subject") 
+data <- inner_join(data,atten_data[, c("subject", "attention_check")], by = "subject")
+
+
+################# Creating excel to check manually ##################
+#write.csv(data, "C:/Users/ramat/Desktop/data_2023/cleaned_data_test.csv")
+
+
+##################### Cleaning the environment ######################
+remove(mod_data,org_data, prolific_data,raw_data,all_data, atten_data,completedData,demo_data, demo_data_ethnic, demo_data_wo_ethnic, files, followup_data, isCompleted, data_sub, Data_filter)
+
+
+################# dropping failed attention checks ##################
+
+#only put 1 into new subset
+data1<- subset(data, attention_check == "R" | attention_check == "r")
+
+remove(data)
+
+
+############# dropping attention checks more than 3SD ##############
+
+values_subject<-names(table(data1$subject)) #extract labels from part
+
+Outlier<-c() #empty object
+
+
+for (i in c(1:length(values_subject)))
+{
+  
+data_sub<-data1[data1$subject==values_subject[i],] #subset data
+outlier<-ifelse(data_sub$rt.x>(mean(data1$rt.x)+(3*sd(data1$rt.x))), rep(TRUE,length(data_sub$rt.x)),rep(FALSE,length(data_sub$rt.x)))
+outlier<-ifelse(outlier==TRUE,values_subject[i],NA)
+Outlier[[i]]<-outlier
+ #delete everything but the first 14 trials
+}
+
+
+Outlier<-do.call(rbind,Outlier )  #merge again
+
+
+Outlier_ID<-c(Outlier[,1],Outlier[,2],Outlier[,3],Outlier[,4],Outlier[,5])
+Outlier_ID<-Outlier_ID[is.na(Outlier_ID)==FALSE]
+
+
+###filter data 1 outlier id
+data2<-subset(data1, !(data1$subject %in% Outlier_ID))
+
+
+################# removing unnecessary columns ##################
+
+data2<-(data2%>% select(-internal_node_id, -browser_name, -browser_type, -interaction, -windowWidth, - windowHeight, -stimulus, -trial_type, -whiteNonwhiteRatio,-time_elapsed, -completed, -rt.y,))
+
+remove(data_sub)
+remove(Outlier)
+remove(data1)
+
+###################### renaming variables #######################
+
+# DV:Fairness, Team Work, Work in team, Distrust
+names(data2)[names(data2) == "perception1"] <- "fairness"
+names(data2)[names(data2) == "perception2"] <- "team_work"
+names(data2)[names(data2) == "perception3"] <- "work_in_team"
+names(data2)[names(data2) == "perception4"] <- "distrust"
+
+# DV scale example
+#data2$fairness[data2$fariness == 1] <- "Strongly disagree"
+#data2$fairness[data2$fairness == 2] <- "Disagree"
+#data2$fairness[data2$fairness == 3] <- "Neither Agree or Disagree"
+#data2$fairness[data2$fairness == 4] <- "Agree"
+#data2$fairness[data2$fairness == 5] <- "Strongly Agree"
+
+#DV questions:
+# People on this team have equal opportunities to advance. near 1=no its unfair near 5 = yes fair
+# People on this team work together well
+# I would like to work in this team
+# I trust the organization's leadership to make good decisions
+
+# Moderator 1: SDO
+names(data2)[names(data2) == "A1"] <- "s1_earn_reward"
+names(data2)[names(data2) == "A2"] <- "s2_inferior"
+names(data2)[names(data2) == "A3"] <- "s3_group_dominat"
+names(data2)[names(data2) == "A4"] <- "s4_bottom_deserve"
+names(data2)[names(data2) == "A5"] <- "s5_group_equality"
+names(data2)[names(data2) == "A6"] <- "s6_group_equal_unjust"
+names(data2)[names(data2) == "A7"] <- "s7_act_equalize"
+names(data2)[names(data2) == "A8"] <- "s8_succeed_equal"
+
+data2$SDO <- (((as.numeric(data2$s1_earn_reward))+(as.numeric(data2$s2_inferior))+(as.numeric(data2$s3_group_dominat))+(as.numeric(data2$s4_bottom_deserve))+(as.numeric(data2$s5_group_equality))+(as.numeric(data2$s6_group_equal_unjust))+(as.numeric(data2$s7_act_equalize))+(as.numeric(data2$s8_succeed_equal))))/8
+
+#SDO scale example
+#data2$s1_earn_reward[data2$s1_earn_reward == 1] <- "Strongly favor"
+#data2$s1_earn_reward[data2$s1_earn_reward == 2] <- "Somewhat favor"
+#data2$s1_earn_reward[data2$s1_earn_reward == 3] <- "Slightly favor"
+#data2$s1_earn_reward[data2$s1_earn_reward == 4] <- "Neutral"
+#data2$s1_earn_reward[data2$s1_earn_reward == 5] <- "Slightly oppose"
+#data2$s1_earn_reward[data2$s1_earn_reward == 6] <- "Somewhat oppose"
+#data2$s1_earn_reward[data2$s1_earn_reward == 7] <- "Strongly oppose"
+
+# Moderator 2: Trial Condition
+
+# Moderator 3: Political Orientation:
+data2$PoliticalOrientation <- ((as.numeric(data2$social))+(as.numeric(data2$economic)))/2
+#Political orientation - social issues - legend
+#data2$economic[data2$economic == 1] <- "Conservative"
+#data2$economic[data2$economic == 2] <- "Liberal"
+#data2$economic[data2$economic == 3] <- "Moderate"
+#data2$economic[data2$economic == 4] <- "Slightly conservative"
+#data2$economic[data2$economic == 5] <- "Slightly liberal"
+#data2$economic[data2$economic == 6] <- "Very conservative"
+#data2$economic[data2$economic == 7] <- "Very liberal"
+
+#Political orientation - economic issues - legend
+#data2$social[data2$social == 1] <- "Conservative"
+#data2$social[data2$social == 2] <- "Liberal"
+#data2$social[data2$social == 3] <- "Moderate"
+#data2$social[data2$social == 4] <- "Slightly conservative"
+#data2$social[data2$social == 5] <- "Slightly liberal"
+#data2$social[data2$social == 6] <- "Very conservative"
+#data2$social[data2$social == 7] <- "Very liberal"
+
+# Moderator 4: Belief in Justice World
+names(data2)[names(data2) == "B1"] <- "b1_just_world"
+names(data2)[names(data2) == "B2"] <- "b2_people_deserve"
+names(data2)[names(data2) == "B3"] <- "b3_confident_justice"
+names(data2)[names(data2) == "B4"] <- "b4_compensate_injustice"
+names(data2)[names(data2) == "B5"] <- "b5_injust_exeception"
+names(data2)[names(data2) == "B6"] <- "b6_fair_decision"
+
+data2$BJW <- ((as.numeric(data2$b1_just_world)) + (as.numeric(data2$b2_people_deserve))+ (as.numeric(data2$b3_confident_justice)) + (as.numeric(data2$b4_compensate_injustice))  + (as.numeric(data2$b5_injust_exeception)) + (as.numeric(data2$b6_fair_decision)))/6
+
+#BJW scale 
+#data2$b1_just_world[data2$b1_just_world == 1] <- "Strongly disagree"
+#data2$b1_just_world[data2$b1_just_world == 2] <- "Disagree"
+#data2$b1_just_world[data2$b1_just_world == 3] <- "Slightly disagree"
+#data2$b1_just_world[data2$b1_just_world == 4] <- "Slightly Agree"
+#data2$b1_just_world[data2$b1_just_world == 5] <- "Agree"
+#data2$b1_just_world[data2$b1_just_world == 6] <- "Strongly agree"
+
+
+# Sociodemographics
+#gender
+data2$gender[data2$gender == "m"] <- 0
+data2$gender[data2$gender == "f"] <- 1
+data2$gender[data2$gender == "0"] <- 2
+
+#edu status - legend
+#data2$edu[data2$edu == 1] <- "Some high school or less"
+#data2$edu[data2$edu == 2] <- "Two year college degree"
+#data2$edu[data2$edu == 3] <- "Some college but no degree"
+#data2$edu[data2$edu == 4] <- "High school or GED"
+#data2$edu[data2$edu == 5] <- "Four year college degree"
+#data2$edu[data2$edu == 6] <- "Graduate degree"
+#data2$edu[data2$edu == 7] <- "N/A"
+#data2$edu[data2$edu == 8] <- "Don't know"
+
+#ethic
+data2$ethnic[data2$ethnic == "White"] <- 0
+data2$ethnic[data2$ethnic == "Asian"] <- 1
+data2$ethnic[data2$ethnic == "Other"] <- 1
+data2$ethnic[data2$ethnic == "AI-AN"] <- 1
+data2$ethnic[data2$ethnic == "NH-PI"] <- 1
+data2$ethnic[data2$ethnic=="Black-AfrAmr"] <- 1
+
+#marital status - legend
+#data2$marital[data2$marital == 1] <- "Divorced"
+#data2$marital[data2$marital == 2] <- "Married"
+#data2$marital[data2$marital == 3] <- "Seperated"
+#data2$marital[data2$marital == 4] <- "Widowed"
+
+#Employment - legend
+#data2$employment[data2$employment == 1] <- "Full-time"
+#data2$employment[data2$employment == 2] <- " Part-time"
+#data2$employment[data2$employment == 3] <- "Prefer not to answer"
+#data2$employment[data2$employment == 4] <- "Unemployed"
+
+# Income
+data2$income[data2$income == 1] <- "$10,000 to $19,999 "
+data2$income[data2$income == 2] <- "$100,000 to $124,999"
+data2$income[data2$income == 3] <- "$125,000 to $149,999"
+data2$income[data2$income == 4] <- "$150,000 to $199,999"
+data2$income[data2$income == 5] <- "$20,000 to $29,999"
+data2$income[data2$income == 6] <- "$200,000 or more"
+data2$income[data2$income == 7] <- "$30,000 to $39,999"
+data2$income[data2$income == 8] <- "$40,000 to $49,999"
+data2$income[data2$income == 9] <- "$50,000 to $59,999"
+data2$income[data2$income == 10] <- "$60,000 to $69,999"
+data2$income[data2$income == 11] <- "$70,000 to $79,999"
+data2$income[data2$income == 12] <- "$80,000 to $89,999"
+data2$income[data2$income == 13] <- "$90,000 to $99,999"
+data2$income[data2$income == 14] <- "Less than $10,000"
+
+data2$income[data2$income == "Less than $10,000"] <- 10000
+data2$income[data2$income == "$10,000 to $19,999 "] <- 15000
+data2$income[data2$income == "$20,000 to $29,999"] <- 25000
+data2$income[data2$income == "$30,000 to $39,999"] <- 35000
+data2$income[data2$income == "$40,000 to $49,999"] <- 45000
+data2$income[data2$income == "$50,000 to $59,999"] <- 55000
+data2$income[data2$income == "$60,000 to $69,999"] <- 65000
+data2$income[data2$income == "$70,000 to $79,999"] <- 75000
+data2$income[data2$income == "$80,000 to $89,999"] <- 85000
+data2$income[data2$income == "$90,000 to $99,999"] <- 95000
+data2$income[data2$income == "$100,000 to $124,999"] <- 112500
+data2$income[data2$income == "$125,000 to $149,999"] <- 137500
+data2$income[data2$income == "$150,000 to $199,999"] <- 175000
+data2$income[data2$income == "$200,000 or more"] <- 225000
+
+data2$income_log <- log(as.numeric(data2$income))
+
+```
+```{r, error=FALSE, warning = FALSE, message = FALSE, results='hide'}
+################ prepare variables for analysis #################
+
+
+data2$whitemen<-ifelse(data2$incomeRatio==1,1,0)
+data2$nwhitemen<-ifelse(data2$incomeRatio==2,1,0)
+data2$whitefemale<-ifelse(data2$incomeRatio==3,1,0)
+data2$nwhitefemale<-ifelse(data2$incomeRatio==4,1,0)
+data2$equal<-ifelse(data2$incomeRatio==5,1,0)
+
+#dummy 0 = white male earn more
+#dummy 1 = non white male earn more
+#dummy 2 = white female earn more
+#dummy 3 = non white male earn more
+#dummy 4 = equal condition
+
+#transform to DV to numeric values
+data2$fairness<- as.numeric(data2$fairness)
+data2$team_work<- as.numeric(data2$team_work)
+data2$work_in_team<- as.numeric(data2$work_in_team)
+data2$distrust<- as.numeric(data2$distrust)
+data2$age<-as.numeric(data2$age)
+data2$edu<-as.numeric(data2$edu)
+data2$children<-as.numeric(data2$children)
+data2$income_log<as.numeric(data2$income_log)
+data2$ladder<-as.numeric(data2$ladder)
+
+```
+# Main Effect Analysis
+```{r, error=FALSE, warning = FALSE, message = FALSE, results='hide'}
+
+# Fairness
+model_1<-lmer(fairness~ whitemen + nwhitemen+ whitefemale + nwhitefemale + (1|subject), data = data2)
+summary(model_1)
+
+# Teamwork
+model_2<-lmer(team_work~ whitemen + nwhitemen+ whitefemale + nwhitefemale + (1|subject), data = data2)
+summary(model_2)
+
+# Work in team
+model_3<-lmer(work_in_team~ whitemen + nwhitemen+ whitefemale + nwhitefemale + (1|subject), data = data2)
+summary(model_3)
+
+#distrust
+model_4<-lmer(distrust~ whitemen + nwhitemen+ whitefemale + nwhitefemale + (1|subject), data = data2)
+summary(model_4)
+
+```
+
+```{r}
+h<-htmlreg(l = list(model_1, model_2, model_3, model_4), center = TRUE, stars = c(0.001, 0.01, 0.05), bold = 0.05, caption = 'M1 = Fairness NW (DV), M2 = Team Work NW (DV), M3 = Want to work in team NW (DV), M4 = Distrust NW (DV)', caption.above = TRUE, digits = 3, leading.zero = F)
+
+htmltools::HTML(h)
+
+```
+# Main Effects Analysis with control variables
+```{r, error=FALSE, warning = FALSE, message = FALSE, results='hide'}
+
+model_5<-lmer(fairness~nwhitefemale + whitemen + nwhitemen+ whitefemale + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation + (1|subject), data = data2)
+summary(model_5)
+
+model_6<-lmer(team_work~nwhitefemale + whitemen + nwhitemen+ whitefemale + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+(1|subject), data = data2)
+summary(model_6)
+
+model_7<-lmer(work_in_team~nwhitefemale + whitemen + nwhitemen+ whitefemale + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation+ (1|subject), data = data2)
+summary(model_7)
+
+model_8<-lmer(distrust~nwhitefemale + whitemen + nwhitemen+ whitefemale + age + gender + ethnic + edu + marital + children + employment + income_log + ladder + PoliticalOrientation + (1|subject), data = data2)
+summary(model_8)
+
+```
+```{r}
+h<-htmlreg(l = list(model_5, model_6, model_7, model_8), center = TRUE, stars = c(0.001, 0.01, 0.05), bold = 0.05, caption = 'M1 = Fairness NW (DV), M2 = Team Work NW (DV), M3 = Want to work in team NW (DV), M4 = Distrust NW (DV)', caption.above = TRUE, digits = 3, leading.zero = F)
+
+htmltools::HTML(h)
+```
+# Moderator Analysis: Representation 
+```{r, error=FALSE, warning = FALSE, message = FALSE, results='hide'}
+
+model_9<-lmer(fairness~nwhitefemale + whitemen + nwhitemen+ whitefemale+trial_condition + nwhitefemale:trial_condition + whitemen:trial_condition + nwhitemen:trial_condition + whitefemale:trial_condition + (1 | subject), data = data2)
+summary(model_9)
+
+model_10<-lmer(team_work~nwhitefemale + whitemen + nwhitemen+ whitefemale+trial_condition + nwhitefemale:trial_condition + whitemen:trial_condition + nwhitemen:trial_condition + whitefemale:trial_condition + (1 + trial_condition|subject), data = data2)
+summary(model_10)
+
+model_11<-lmer(work_in_team~nwhitefemale + whitemen + nwhitemen+ whitefemale+trial_condition + nwhitefemale:trial_condition + whitemen:trial_condition + nwhitemen:trial_condition + whitefemale:trial_condition + (1 + trial_condition|subject), data = data2)
+summary(model_11)
+
+model_12<-lmer(distrust~nwhitefemale + whitemen + nwhitemen+ whitefemale+trial_condition + nwhitefemale:trial_condition + whitemen:trial_condition + nwhitemen:trial_condition + whitefemale:trial_condition + (1 + trial_condition|subject), data = data2)
+summary(model_12)
+
+```
+```{r}
+h<-htmlreg(l = list(model_9, model_10, model_11, model_12), center = TRUE, stars = c(0.001, 0.01, 0.05), bold = 0.05, caption = 'M1 = Fairness NW (DV), M2 = Team Work NW (DV), M3 = Want to work in team NW (DV), M4 = Distrust NW (DV)', caption.above = TRUE, digits = 3, leading.zero = F)
+
+htmltools::HTML(h)
+```
+# Moderator Analysis: SDO 
+```{r, error=FALSE, warning = FALSE, message = FALSE, results='hide'}
+
+model_13<-lmer(fairness~nwhitefemale + whitemen + nwhitemen+ whitefemale+SDO + nwhitefemale:SDO + whitemen:SDO + nwhitemen:SDO + whitefemale:SDO + (1 + SDO|subject), data = data2)
+summary(model_13)
+
+model_14<-lmer(team_work~nwhitefemale + whitemen + nwhitemen+ whitefemale+SDO + nwhitefemale:SDO + whitemen:SDO + nwhitemen:SDO + whitefemale:SDO + (1 + SDO|subject), data = data2)
+summary(model_14)
+
+model_15<-lmer(work_in_team~nwhitefemale + whitemen + nwhitemen+ whitefemale+SDO + nwhitefemale:SDO + whitemen:SDO + nwhitemen:SDO + whitefemale:SDO + (1 + SDO|subject), data = data2)
+summary(model_15)
+
+model_16<-lmer(distrust~nwhitefemale + whitemen + nwhitemen+ whitefemale+SDO + nwhitefemale:SDO + whitemen:SDO + nwhitemen:SDO + whitefemale:SDO + (1 + SDO|subject), data = data2)
+summary(model_16)
+
+```
+```{r}
+h<-htmlreg(l = list(model_13, model_14, model_15, model_16), center = TRUE, stars = c(0.001, 0.01, 0.05), bold = 0.05, caption = 'M1 = Fairness NW (DV), M2 = Team Work NW (DV), M3 = Want to work in team NW (DV), M4 = Distrust NW (DV)', caption.above = TRUE, digits = 3, leading.zero = F)
+
+htmltools::HTML(h)
+```
+
+# Moderator Analysis: Political Orientation
+```{r, error=FALSE, warning = FALSE, message = FALSE, results='hide'}
+
+model_17<-lmer(fairness~nwhitefemale + whitemen + nwhitemen+ whitefemale+PoliticalOrientation + nwhitefemale:PoliticalOrientation + whitemen:PoliticalOrientation + nwhitemen:PoliticalOrientation + whitefemale:PoliticalOrientation + (1 + PoliticalOrientation|subject), data = data2)
+summary(model_17)
+
+model_18<-lmer(team_work~nwhitefemale + whitemen + nwhitemen+ whitefemale+PoliticalOrientation + nwhitefemale:PoliticalOrientation + whitemen:PoliticalOrientation + nwhitemen:PoliticalOrientation + whitefemale:PoliticalOrientation + (1 + PoliticalOrientation|subject), data = data2)
+summary(model_18)
+
+model_19<-lmer(work_in_team~nwhitefemale + whitemen + nwhitemen+ whitefemale+PoliticalOrientation + nwhitefemale:PoliticalOrientation + whitemen:PoliticalOrientation + nwhitemen:PoliticalOrientation + whitefemale:PoliticalOrientation + (1 + PoliticalOrientation|subject), data = data2)
+summary(model_19)
+
+model_20<-lmer(distrust~nwhitefemale + whitemen + nwhitemen+ whitefemale+PoliticalOrientation + nwhitefemale:PoliticalOrientation + whitemen:PoliticalOrientation + nwhitemen:PoliticalOrientation + whitefemale:PoliticalOrientation + (1 + PoliticalOrientation|subject), data = data2)
+summary(model_20)
+
+```
+```{r}
+h<-htmlreg(l = list(model_17, model_18, model_19, model_20), center = TRUE, stars = c(0.001, 0.01, 0.05), bold = 0.05, caption = 'M1 = Fairness NW (DV), M2 = Team Work NW (DV), M3 = Want to work in team NW (DV), M4 = Distrust NW (DV)', caption.above = TRUE, digits = 3, leading.zero = F)
+
+htmltools::HTML(h)
+```
